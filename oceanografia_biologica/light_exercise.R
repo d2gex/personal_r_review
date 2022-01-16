@@ -2,29 +2,34 @@ source("config.R")
 chlorophyll_data_path = file.path(DATA_PATH, "chlorophyll_data.xlsx")
 chlorophyll_data = read_excel(chlorophyll_data_path, skip=9)
 
+prepare_data <- function(data) {
+  
+}
 
-
-clean_data <- function(raw_data) {
+clean_data <- function(data) {
   
   # get rid of subheadings on row 1
-  chlorophyll_data <- chlorophyll_data[-c(1), ]
+  data <- data[-c(1), ]
   # rename columns to human readable columns
-  chlorophyll_data <- chlorophyll_data %>%
+  data <- data %>%
     rename(
       'date' = `mon/day/yr`,
-      'depth' = `Depth,m`,
-      'irradiance' = `PAR/Irradiance`,
+      'z' = `Depth,m`,
+      'i_z' = `PAR/Irradiance`,
       'chlorophyll' = Fluo.Clorofila,
       'turbid' = `Turbid.,`
     )
   # convert all col names to lowercase
-  chlorophyll_data <- set_names(chlorophyll_data, tolower(names(chlorophyll_data)))
+  data <- set_names(data, tolower(names(data)))
   
-  return(chlorophyll_data)
+  return(data)
   
 }
 
+
+
 chlorophyll_data = clean_data(chlorophyll_data)
+
 
 
 
