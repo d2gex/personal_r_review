@@ -8,8 +8,7 @@ clean_data <- function(raw_data) {
   
   # get rid of subheadings on row 1
   chlorophyll_data <- chlorophyll_data[-c(1), ]
-  
-  # rename
+  # rename columns to human readable columns
   chlorophyll_data <- chlorophyll_data %>%
     rename(
       'date' = `mon/day/yr`,
@@ -18,6 +17,7 @@ clean_data <- function(raw_data) {
       'chlorophyll' = Fluo.Clorofila,
       'turbid' = `Turbid.,`
     )
+  # convert all col names to lowercase
   chlorophyll_data <- set_names(chlorophyll_data, tolower(names(chlorophyll_data)))
   
   return(chlorophyll_data)
