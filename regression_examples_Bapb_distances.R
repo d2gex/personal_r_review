@@ -51,3 +51,8 @@ ggplot(data=ekev, mapping = aes(x=Distance, y=Ba)) +
   # the thme. Look at the doc to know how many of them are.
   theme_bw(base_size = 16)
 
+plot(Pb ~ Distance, data = ekev)
+plot(Pb ~ Distance, ekev, log = "xy")
+modPb <- lm(log10(Pb) ~ log10(Distance), ekev)
+abline(modPb)
+summary(modPb)
