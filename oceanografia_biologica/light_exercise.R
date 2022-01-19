@@ -58,11 +58,37 @@ add_i0_to_df <- function(ch_data) {
 
 }
 
-add_k_to_df <- function(ch_data) {
-  #'@description Calculate k and add it to the dataframe
+add_a_z_to_df <- function(ch_data) {
+  #'@description find the increments between discreed depths
   
-  return(transform(ch_data, 
-                   k= (log(ch_data$i_z) - log(ch_data$i_0)) / log(ch_data$z)))
+  # Find increments of z, making the first and last as NA as they aren't needed
+  z_1 <- ch_data$z
+  up_to = length(z_1) - 2
+  z_2 <-c(0, z_1[1:up_to], 0)
+  a_z <- c(0, abs(z_1 - z_2)[-c(1, length(z_1))], 0)
+  return(transform(ch_data, a_z=a_z))
+  
+}
+
+add_k_to_df <- function(ch_data) {
+  #'@description Calculate k by using [second, penultimate] rows and 
+  #'add it to the dataframe. 
+  
+  # crop i_z, i_0 and z to the [second, penultimate] rows
+  i_z <- ch_data$i_z[-c(1, length(i_z))]
+  i_0 <- ch_data$i_0[-c(1, length(i_0))]
+  a_z <- ch_data$a_z[-c(1, length(a_z))]
+  
+  # calculate k as the log difference over z
+  k<- (log(i_z) - log(i_0)) / log(a_z)
+  print(k)
+  # repopulate k to havfe te same dimension as the length of i_z/i_0 again
+  return(transform(ch_data, k = c(NA, k, NA)))
+  
+}
+
+calculate_k <- function(ch_data){
+  return(mean(ch_data$k, na.rm = TRUE))
 }
 
 draw <- function(ch_data) {
@@ -77,17 +103,23 @@ draw <- function(ch_data) {
 chlorophyll_data = read_data(chlorophyll_data_path)
 chlorophyll_data = prepare_df(chlorophyll_data)
 chlorophyll_data = add_i0_to_df(chlorophyll_data)
+chlorophyll_data = add_a_z_to_df(chlorophyll_data)
 chlorophyll_data = add_k_to_df(chlorophyll_data)
+k_coeficient = calculate_k(chlorophyll_data)
+print(k_coeficient)
+View(chlorophyll_data)
+
+
+
 draw(chlorophyll_data)
 ggplot(data = chlorophyll_data, mapping= aes(x = z)) +
   geom_point(pch = 21, size = 2, mapping = aes(y=k), colour="pink") +
   geom_smooth(se=F, aes(y=k), colour="pink")
 
 ggplot(data = chlorophyll_data, mapping= aes(x = z, y=i_0 - i_z)) +
-  geom_point(pch = 21, size = 2) +
+  geom_point(pch = 21, size = 2) 
 
   
-View(chlorophyll_data)
 
 
 
