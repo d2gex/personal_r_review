@@ -22,12 +22,22 @@ get_closest_pair_to_value <- function(vector, value) {
   return(vector[abs(vector-value) %in% sort(abs(vector-value))[1:2]])
 }
 
-calculate_vector_pair_substraction <- function(vector, up_to) {
+calculate_vector_pair_operation <- function(vector, up_to, operation) {
   #'@description subtract every two pairs in a vector
   
   vector_dup <-c(0, vector[1:up_to], 0)
-  return (c(0, abs(vector - vector_dup)[-c(1, length(vector))], 0))
-  
+  if (missing(operation)) {
+    result <- abs(vector - vector_dup)
+  }
+  else if (operation == "+") {
+    result <- abs(vector + vector_dup)
+  }
+  else {
+    result <- abs(vector* vector_dup)
+  }
+  return (c(0,
+            result[-c(1, length(vector))],
+            0))
   
 }
 
@@ -77,7 +87,7 @@ add_a_z_to_df <- function(ch_data) {
   # Find increments of z, making the first and last as NA as they aren't needed
   z = ch_data$z
   up_to = length(z) - 2
-  a_z = calculate_vector_pair_substraction(z, length(z) - 2)
+  a_z = calculate_vector_pair_operation(z, length(z) - 2)
   return(transform(ch_data, a_z=a_z))
   
 }
@@ -108,6 +118,19 @@ calculate_photic_depth <- function(ch_data, k) {
   i_0 = ch_data$i_0[1]
   photic_i_z = (1/100) * i_0
   return((log(photic_i_z / i_0) / k))
+}
+
+add_a_ch_to_df <- function(ch_data) {
+  #'@description Calculate the increments for the chlorophyll
+  
+  # Find increments of z, making the first and last as NA as they aren't needed
+  chlorophyll = ch_data$chlorophyll
+  up_to = length(chlorophyll) - 2
+  a_ch = calculate_vector_pair_operation(chlorophyll, 
+                                         length(chlorophyll) - 2, 
+                                         operation = '+')
+  return(transform(ch_data, a_ch=a_ch))
+  
 }
 
 calculate_chlorophyll_m2 <- function(ch_data, photic_depth) {
@@ -143,11 +166,12 @@ draw <- function(ch_data) {
     
 }
 
-chlorophyll_data = read_data(chlorophyll_data_path)
-chlorophyll_data = prepare_df(chlorophyll_data)
-chlorophyll_data = add_i0_to_df(chlorophyll_data)
-chlorophyll_data = add_a_z_to_df(chlorophyll_data)
-chlorophyll_data = add_k_to_df(chlorophyll_data)
+chlorophyll_data <- read_data(chlorophyll_data_path)
+chlorophyll_data <- prepare_df(chlorophyll_data)
+chlorophyll_data <- add_i0_to_df(chlorophyll_data)
+chlorophyll_data <- add_a_z_to_df(chlorophyll_data)
+chlorophyll_data <- add_k_to_df(chlorophyll_data)
+chlorophyll_data <- add_a_ch_to_df(chlorophyll_data)
 k_coeficient = calculate_k(chlorophyll_data)
 photic_depth = calculate_photic_depth (chlorophyll_data, k_coeficient)
 details = calculate_chlorophyll_m2(chlorophyll_data, photic_depth)
