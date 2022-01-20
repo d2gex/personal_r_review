@@ -137,22 +137,31 @@ calculate_chlorophyll_m2 <- function(ch_data, photic_depth) {
   #'@description Calculate the amount of chlorophyll in mg/m2 using trapezium
   #'method
   
-  # Get chlorophyll and z increments from [2, right below photic zone]
   z = ch_data$z
+  
+  # Get chlorophyll and a_z increments from [2, right below photic zone]
   up_to_photic_zone <- (!is.na(z)) & (z < photic_depth) 
-  a_z <- z[up_to_photic_zone][2:length(a_z)]
-  chlo <- ch_data$chlorophyll[up_to_photic_zone][2:length(a_z)]
   
-  # Get chlorophyll and z increments around photic zone
-  z_pair_around_photic <- get_closest_pair_to_value(z, photic_depth)
-  around_photic_zone <-ch_data$z %in% z_pair_around_photic
-  a_z_additional <- ch_data$a_z [around_photic_zone]
-  chlo_additional <- ch_data$chlorophyll [around_photic_zone]
+  a_z <- ch_data$a_z[up_to_photic_zone]
+  a_ch <- ch_data$a_ch[up_to_photic_zone]
   
-  # Calculate trapezium formula for interval [2, right below photic zone]
+  # Get chlorophyll and a_z increments right above the photic zones
+  z_above_photic_zone <- max(get_closest_pair_to_value(z, photic_depth))
+  
+  a_z_additional <- ch_data$a_z [ch_data$z == z_above_photic_zone]
+  chlo_additional <- ch_data$a_ch [ch_data$z == z_above_photic_zone]
   
   
-  return(list(a_z, a_z_additional, chlo, chlo_additional))
+  # Calculate trapezium formula(areas) for interval [2, right below photic zone]
+  accumulate_ch_m2 <- sum(a_z * (a_ch / 2)) 
+  
+  # Calculate trapezium formula(single area) for right above photic zones
+  ch_percentage <- (photic_depth %% 10) / a_z_additional
+  
+  additional_ch_m2 = (ch_percentage * (a_z_additional * (chlo_additional / 2)))
+  accumulate_ch_m2 <- accumulate_ch_m2 + additional_ch_m2
+  return (accumulate_ch_m2)
+
 }
 
 
@@ -174,10 +183,11 @@ chlorophyll_data <- add_k_to_df(chlorophyll_data)
 chlorophyll_data <- add_a_ch_to_df(chlorophyll_data)
 k_coeficient = calculate_k(chlorophyll_data)
 photic_depth = calculate_photic_depth (chlorophyll_data, k_coeficient)
-details = calculate_chlorophyll_m2(chlorophyll_data, photic_depth)
+ch_m2 = calculate_chlorophyll_m2(chlorophyll_data, photic_depth)
 
 print(k_coeficient)
 print(photic_depth)
+print(ch_m2)
 View(chlorophyll_data)
 
 
