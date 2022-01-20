@@ -164,41 +164,44 @@ calculate_chlorophyll_m2 <- function(ch_data, photic_depth) {
 
 }
 
-
-
-draw <- function(ch_data) {
-  ggplot(data = ch_data, mapping= aes(x = z)) +
-    geom_point(pch = 21, size = 2, aes(y=i_z), colour="blue") +
-    geom_smooth(se=F, aes(y=i_z), colour="blue") +
-    geom_point(pch = 21, size = 2, mapping = aes(y=i_0), colour="green") +
-    geom_smooth(se=F, aes(y=i_0), colour="green")
-    
+run_exercise <- function(ch_data) {
+  
+  ch_data <- prepare_df(ch_data)
+  ch_data <- add_i0_to_df(ch_data)
+  ch_data <- add_a_z_to_df(ch_data)
+  ch_data <- add_k_to_df(ch_data)
+  ch_data <- add_a_ch_to_df(ch_data)
+  k_coeficient = calculate_k(ch_data)
+  photic_depth = calculate_photic_depth (ch_data, k_coeficient)
+  ch_m2 = calculate_chlorophyll_m2(ch_data, photic_depth)
+  
+  result = list(k_coeficient, photic_depth, ch_m2)
+  names(result) <- c('k', 'ph_depth', 'chlo_mg_m2')
+  return (result)
 }
 
-chlorophyll_data <- read_data(chlorophyll_data_path)
-chlorophyll_data <- prepare_df(chlorophyll_data)
-chlorophyll_data <- add_i0_to_df(chlorophyll_data)
-chlorophyll_data <- add_a_z_to_df(chlorophyll_data)
-chlorophyll_data <- add_k_to_df(chlorophyll_data)
-chlorophyll_data <- add_a_ch_to_df(chlorophyll_data)
-k_coeficient = calculate_k(chlorophyll_data)
-photic_depth = calculate_photic_depth (chlorophyll_data, k_coeficient)
-ch_m2 = calculate_chlorophyll_m2(chlorophyll_data, photic_depth)
-
-print(k_coeficient)
-print(photic_depth)
-print(ch_m2)
-View(chlorophyll_data)
 
 
-
-draw(chlorophyll_data)
-ggplot(data = chlorophyll_data, mapping= aes(x = z)) +
-  geom_point(pch = 21, size = 2, mapping = aes(y=k), colour="pink") +
-  geom_smooth(se=F, aes(y=k), colour="pink")
-
-ggplot(data = chlorophyll_data, mapping= aes(x = z, y=i_0 - i_z)) +
-  geom_point(pch = 21, size = 2) 
+# 
+# draw <- function(ch_data) {
+#   ggplot(data = ch_data, mapping= aes(x = z)) +
+#     geom_point(pch = 21, size = 2, aes(y=i_z), colour="blue") +
+#     geom_smooth(se=F, aes(y=i_z), colour="blue") +
+#     geom_point(pch = 21, size = 2, mapping = aes(y=i_0), colour="green") +
+#     geom_smooth(se=F, aes(y=i_0), colour="green")
+#     
+# }
+# 
+# 
+# 
+# 
+# draw(chlorophyll_data)
+# ggplot(data = chlorophyll_data, mapping= aes(x = z)) +
+#   geom_point(pch = 21, size = 2, mapping = aes(y=k), colour="pink") +
+#   geom_smooth(se=F, aes(y=k), colour="pink")
+# 
+# ggplot(data = chlorophyll_data, mapping= aes(x = z, y=i_0 - i_z)) +
+#   geom_point(pch = 21, size = 2) 
 
   
 
