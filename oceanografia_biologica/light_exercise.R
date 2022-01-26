@@ -3,6 +3,7 @@ library(tidyverse)
 library(useful)
 library(readxl)
 library(ggplot2)
+library(gridExtra)
 chlorophyll_data_path = file.path(DATA_PATH, "chlorophyll_data.xlsx")
 
 
@@ -175,33 +176,39 @@ run_exercise <- function(ch_data) {
   photic_depth = calculate_photic_depth (ch_data, k_coeficient)
   ch_m2 = calculate_chlorophyll_m2(ch_data, photic_depth)
   
-  result = list(k_coeficient, photic_depth, ch_m2)
-  names(result) <- c('k', 'ph_depth', 'chlo_mg_m2')
+  result = list(ch_data, k_coeficient, photic_depth, ch_m2)
+  names(result) <- c('ch_data','k', 'ph_depth', 'chlo_mg_m2')
   return (result)
 }
 
-
-
-# 
-# draw <- function(ch_data) {
-#   ggplot(data = ch_data, mapping= aes(x = z)) +
-#     geom_point(pch = 21, size = 2, aes(y=i_z), colour="blue") +
-#     geom_smooth(se=F, aes(y=i_z), colour="blue") +
-#     geom_point(pch = 21, size = 2, mapping = aes(y=i_0), colour="green") +
-#     geom_smooth(se=F, aes(y=i_0), colour="green")
-#     
-# }
-# 
-# 
-# 
-# 
-# draw(chlorophyll_data)
-# ggplot(data = chlorophyll_data, mapping= aes(x = z)) +
-#   geom_point(pch = 21, size = 2, mapping = aes(y=k), colour="pink") +
-#   geom_smooth(se=F, aes(y=k), colour="pink")
-# 
-# ggplot(data = chlorophyll_data, mapping= aes(x = z, y=i_0 - i_z)) +
-#   geom_point(pch = 21, size = 2) 
+draw <- function(results) {
+  
+  # Draw Iz, I0, k, chlorophyll
+  i_plots<- ggplot(data = results$ch_data, mapping= aes(x = z)) +
+    # z vs i_z
+    geom_point(pch = 21, size = 2, aes(y=i_z), colour="blue") +
+    geom_line(aes(y=i_z), colour="blue", ) +
+    # z vs i_0
+    geom_point(pch = 21, size = 2, mapping = aes(y=i_0), colour="green") +
+    geom_line(aes(y=i_0), colour="green") +
+    labs(title="Combine plot for Iz e I0 con respecto a la profundidad", 
+         x="depth(z)", 
+         y="Iz and I0") +
+    geom_point(aes(x=75.6, y=0.49), colour="red")
+     
+  
+  ch_plots<- ggplot(data = results$ch_data, mapping= aes(x = z)) +
+    geom_point(pch = 21, size = 2, aes(y=(a_ch/2) * a_z), colour="blue") +
+    
+    geom_line(aes(y=(a_ch/2) * a_z), colour="blue") +
+    labs(title="Tendencia de la clorofila con respecto a la profundidad z", 
+         y='chlorophyll', x='depth(z)') 
+    
+  
+  # Draw dataaframe
+  data_table <- tableGrob(results$ch_data)
+  grid.arrange(i_plots, ch_plots)
+}
 
   
 
