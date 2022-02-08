@@ -42,6 +42,7 @@ library(dplyr)
 library(ggplot2)
 library(lmtest)
 library(car)
+library(gridExtra)
 ```
 
 ```{r}
@@ -54,6 +55,8 @@ names(teeth_data)[2] <- 'treated_gr_C'
 
 
 ## DATA EXPLORATION
+
+### Data descripton and visualization via box plots
 
 Let's explore the ranges for each variable in the sampled data
 ```{r}
@@ -73,29 +76,33 @@ boxplot(scale(teeth_data), las =2, main="Observations for N and C after scaling"
 ```
 
 
+### Do the observations for Nitrogen follow a normal distribution?
 
-Normality plots
+Let's graph the Q-Q plots for all Nitrogen-like variables
 ```{r}
-qqnorm(teeth_data$treated_gr_N)
-```
-```{r}
-qqnorm(teeth_data$nontreated_N)
+par(mfrow = c(3, 1))
+with(teeth_data, { 
+  qqnorm(nontreated_N, main="Normal Q-Q plot for nontreated_N")
+  qqnorm(treated_N, main="Normal Q-Q plot for treated_N")
+  qqnorm(treated_gr_N, main="Normal Q-Q plot for treated_gr_N")
+  }) 
+  
 ```
 
+### Do the observations for Carbon follow a normal distribution?
+
+Let's graph the Q-Q plots for all Carbon-like variables
 ```{r}
-qqnorm(teeth_data$treated_N)
+par(mfrow = c(3, 1))
+with(teeth_data, { 
+  qqnorm(nontreated_C, main="Normal Q-Q plot for nontreated_C")
+  qqnorm(treated_C, main="Normal Q-Q plot for treated_C")
+  qqnorm(treated_gr_C, main="Normal Q-Q plot for treated_gr_C")
+  }) 
+  
 ```
 
-All nitrogen data looks normal, at least visually. Let'se see for carbon:
-```{r}
-qqnorm(teeth_data$treated_gr_C)
-```
-```{r}
-qqnorm(teeth_data$nontreated_C)
-```
-```{r}
-qqnorm(teeth_data$treated_C)
-```
+
 C data doesn't look completely normal. Let's test it for normality:
 ```{r}
 shapiro.test(teeth_data$treated_gr_C)
