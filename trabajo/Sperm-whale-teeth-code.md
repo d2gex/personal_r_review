@@ -39,13 +39,6 @@ What was done in the lab:
 
 
 ```r
-teeth_data <- read.csv("Samples-Laura-CLEAN-FOR-R.csv")
-names(teeth_data)[1] <- 'treated_gr_N'
-names(teeth_data)[2] <- 'treated_gr_C'
-```
-
-
-```r
 library(dplyr)
 ```
 
@@ -68,19 +61,95 @@ library(dplyr)
 
 ```r
 library(ggplot2)
+library(lmtest)
+```
+
+```
+## Loading required package: zoo
+```
+
+```
+## 
+## Attaching package: 'zoo'
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     as.Date, as.Date.numeric
+```
+
+```r
+library(car)
+```
+
+```
+## Loading required package: carData
+```
+
+```
+## 
+## Attaching package: 'car'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     recode
 ```
 
 
+```r
+teeth_data <- read.csv("Samples-Laura-CLEAN-FOR-R.csv")
+names(teeth_data)[1] <- 'treated_gr_N'
+names(teeth_data)[2] <- 'treated_gr_C'
+```
+
+
+
+
 ## DATA EXPLORATION
+
+Let's explore the ranges for each variable in the sampled data
+
+```r
+summary(teeth_data)
+```
+
+```
+##   treated_gr_N    treated_gr_C     nontreated_N    nontreated_C   
+##  Min.   :11.76   Min.   :-13.29   Min.   :11.02   Min.   :-13.52  
+##  1st Qu.:13.73   1st Qu.:-13.02   1st Qu.:13.67   1st Qu.:-13.23  
+##  Median :14.15   Median :-12.81   Median :13.96   Median :-12.94  
+##  Mean   :14.19   Mean   :-12.65   Mean   :14.01   Mean   :-12.86  
+##  3rd Qu.:14.83   3rd Qu.:-12.49   3rd Qu.:14.58   3rd Qu.:-12.83  
+##  Max.   :16.00   Max.   :-11.08   Max.   :16.00   Max.   :-11.56  
+##    treated_N       treated_C     
+##  Min.   :11.57   Min.   :-13.36  
+##  1st Qu.:13.71   1st Qu.:-13.09  
+##  Median :14.17   Median :-12.80  
+##  Mean   :14.21   Mean   :-12.69  
+##  3rd Qu.:14.91   3rd Qu.:-12.56  
+##  Max.   :15.93   Max.   :-11.02
+```
+The summary seems to show different scales between the observation for the N vs C. The mean
+for **treated_gr_N** is 14.15 with min/max values contained within the interval [11.76, 16.00]. However its counterpart **treated_gr_C** has a mean of -12.81 and the values are within [-13.29, -11.08]. A similar scenario occurs to **treated_N** vs **treated_C**. The following boxplot shows visually those scale differences.
+
+```r
+boxplot(teeth_data, las =2, main="Raw observations for N and C without scaling")
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 
 
 Boxplots of all the variables (scaled, because N and C values differ a lot)
 
 ```r
-boxplot(scale(teeth_data), las =2)
+boxplot(scale(teeth_data), las =2, main="Observations for N and C after scaling")
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 
 
@@ -90,20 +159,20 @@ Normality plots
 qqnorm(teeth_data$treated_gr_N)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
 qqnorm(teeth_data$nontreated_N)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 
 ```r
 qqnorm(teeth_data$treated_N)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 All nitrogen data looks normal, at least visually. Let'se see for carbon:
 
@@ -111,19 +180,19 @@ All nitrogen data looks normal, at least visually. Let'se see for carbon:
 qqnorm(teeth_data$treated_gr_C)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
 qqnorm(teeth_data$nontreated_C)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
 qqnorm(teeth_data$treated_C)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 C data doesn't look completely normal. Let's test it for normality:
 
 ```r
@@ -185,7 +254,7 @@ Correlation plots - just out of curiosity
 plot(teeth_data)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
 
 ## Differences between samples
@@ -208,7 +277,7 @@ only_N_data <- teeth_data[,c(3,5,1)]
 boxplot(only_C_data)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 Let's compare non-treated sample C values with treated sample C values (without graphite) using a Paired Samples Wilcoxon Signed-rank test (non-parametric)
 
@@ -234,7 +303,7 @@ What about N?
 boxplot(only_N_data)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 
 ```r
 wilcox.test(teeth_data$nontreated_N, teeth_data$treated_N, paired=TRUE)
@@ -303,31 +372,12 @@ Maybe scatterplots could give us some idea?
 
 
 ```r
-library(car)
-```
-
-```
-## Loading required package: carData
-```
-
-```
-## 
-## Attaching package: 'car'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     recode
-```
-
-```r
 scatterplot(nontreated_C ~ treated_C, data=teeth_data,
    xlab="Treated sample C values", ylab="Non-treated sample C values",
    main="Scatterplot for C values")
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 
 
 ```r
@@ -336,7 +386,7 @@ scatterplot(nontreated_N ~ treated_N, data=teeth_data,
    main="Scatterplot for N values")
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 ## Dispersion of differences
 
 
@@ -394,14 +444,14 @@ summary(N_difference)
 boxplot(C_difference)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 
 
 ```r
 boxplot(N_difference)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
 
 #DOUBT 
 *Not sure if I should remove all these outliers... Looks like the differences are pretty varied?*
@@ -443,7 +493,7 @@ summary(mC)
 plot(mC)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-4.png)<!-- -->
 
 In the first plot it looks like the residuals are pretty dispersed... Not good?
 <span style="color:blue">Quite the contrary. It is actually a very good one as most points can be squared in a rectangle which longer sides run parallel to the x-axis</span>.
@@ -485,7 +535,7 @@ summary(mN)
 plot(mN)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-37-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-37-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-37-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-37-4.png)<!-- -->
 In the first graph some residuals are dispersed too... Not good again? I wonder if it would be better if we removed the outliers that are seen in the boxplots of differences.
 
 ## Removing outliers
@@ -529,7 +579,7 @@ summary(mCsin)
 plot(mCsin)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-38-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-38-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-38-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-38-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-4.png)<!-- -->
 
 Umm.. Is this considered better?
 
@@ -564,7 +614,7 @@ summary(mNsin)
 plot(mNsin)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-42-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-42-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-42-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-42-4.png)<!-- -->
 Not sure if this way the model got better really...
 
 
@@ -577,25 +627,6 @@ Here I tried some test I found for heteroscedasticity (Breusch-Pagan test). Not 
 
 
 
-
-```r
-library(lmtest)
-```
-
-```
-## Loading required package: zoo
-```
-
-```
-## 
-## Attaching package: 'zoo'
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-```
 
 ```r
 bptest(mN)
@@ -641,7 +672,7 @@ ggplot(teeth_data, aes(nontreated_C, treated_C)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
 
 ```r
 ggplot(teeth_data, aes(nontreated_N, treated_N)) +
@@ -658,7 +689,7 @@ ggplot(teeth_data, aes(nontreated_N, treated_N)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
 
 
 ## Conclusions
