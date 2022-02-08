@@ -38,23 +38,38 @@ What was done in the lab:
 4. I received the carbon (C) and nitrogen (N) stable isotope values in all of these samples after using a mass spectrometer. Time to analyze the results -> 
 
 ```{r}
+library(dplyr)
+library(ggplot2)
+library(lmtest)
+library(car)
+```
+
+```{r}
 teeth_data <- read.csv("Samples-Laura-CLEAN-FOR-R.csv")
 names(teeth_data)[1] <- 'treated_gr_N'
 names(teeth_data)[2] <- 'treated_gr_C'
 ```
 
-```{r}
-library(dplyr)
-library(ggplot2)
-```
+
 
 
 ## DATA EXPLORATION
 
+Let's explore the ranges for each variable in the sampled data
+```{r}
+summary(teeth_data)
+```
+The summary seems to show different scales between the observation for the N vs C. The mean
+for **treated_gr_N** is 14.15 with min/max values contained within the interval [11.76, 16.00]. However its counterpart **treated_gr_C** has a mean of -12.81 and the values are within [-13.29, -11.08]. A similar scenario occurs to **treated_N** vs **treated_C**. The following boxplot shows visually those scale differences.
+```{r}
+boxplot(teeth_data, las =2, main="Raw observations for N and C without scaling")
+```
+
+
 
 Boxplots of all the variables (scaled, because N and C values differ a lot)
 ```{r}
-boxplot(scale(teeth_data), las =2)
+boxplot(scale(teeth_data), las =2, main="Observations for N and C after scaling")
 ```
 
 
@@ -173,7 +188,6 @@ Now we would like to find out if the differences between treated and non-treated
 Maybe scatterplots could give us some idea?
 
 ```{r}
-library(car)
 
 scatterplot(nontreated_C ~ treated_C, data=teeth_data,
    xlab="Treated sample C values", ylab="Non-treated sample C values",
@@ -295,7 +309,7 @@ Here I tried some test I found for heteroscedasticity (Breusch-Pagan test). Not 
 
 
 ```{r}
-library(lmtest)
+
 bptest(mN)
 ```
 ```{r}
