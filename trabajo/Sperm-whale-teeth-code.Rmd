@@ -75,10 +75,13 @@ Boxplots of all the variables (scaled, because N and C values differ a lot)
 boxplot(scale(teeth_data), las =2, main="Observations for N and C after scaling")
 ```
 
+### Observations follow a normal distribution?
 
-### Do the observations for Nitrogen follow a normal distribution?
+This is not required for linear regression to be a valid model however we do it
+for the sake of it.
+#### Do the observations for Nitrogen follow a normal distribution?
 
-Let's graph the Q-Q plots for all Nitrogen-like variables
+We do not need to check whether the dependent and independent variables follow a normalLet's graph the Q-Q plots for all Nitrogen-like variables
 ```{r}
 par(mfrow = c(3, 1))
 with(teeth_data, { 
@@ -89,7 +92,7 @@ with(teeth_data, {
   
 ```
 
-### Do the observations for Carbon follow a normal distribution?
+#### Do the observations for Carbon follow a normal distribution?
 
 Let's graph the Q-Q plots for all Carbon-like variables
 ```{r}
@@ -103,30 +106,23 @@ with(teeth_data, {
 ```
 
 
-C data doesn't look completely normal. Let's test it for normality:
+It is difficult to conclude anything about the normality of both Carbon and Nitrogen observations. We will run *Shapiro-Will normality tests* where the null hypothesis is that the observations follows a normal distribution.
 ```{r}
-shapiro.test(teeth_data$treated_gr_C)
-```
-```{r}
-shapiro.test(teeth_data$treated_C)
-```
-```{r}
-shapiro.test(teeth_data$nontreated_C)
-```
-As we can see, **all of the C data does not follow a normal distribution**, so for these ones we will use non-parametric tests
-
-```{r}
-shapiro.test(teeth_data$nontreated_N)
-```
-*The non-treated N data also do not follow a normal distribution... So maybe we can use non-parametric tests for all of them?..*
-
-
-Correlation plots - just out of curiosity
-
-```{r}
-plot(teeth_data)
+normality = sapply(teeth_data, shapiro.test)
+normality
 ```
 
+We can see that we cannot reject the null hypothesis for  **treated_gr_N and treated_N** as their p-values > 0.5, so this may suggest that they are indeed normally distributed. The value for **nontreated_N** and all for **Carbon** don't seem to follow a normal distribution, with the former very close to the rejection area.
+
+### Matrix of graphs showing correlation
+Again, this isn't fully required but it provides us with a landscape to visually confirm the correlation between observation sets of
+the same element. 
+
+```{r}
+plot(teeth_data, main="Ploting every two pair of variables")
+```
+
+We can see that all pair of variables of the same element seem to follow a positive tight correlation. We'll see this later on. For example, **treated_N** on cell [5,5] seems to be correlated to **treated_gr_N** on cell [1,5]. However, same cell [5,5] with **treated_gr_C** in cell [2,2] via cell [2,5] the shape of the relationship is weird - it doesn't follow a sort of straight line and a positive slope.
 
 ## Differences between samples
 
