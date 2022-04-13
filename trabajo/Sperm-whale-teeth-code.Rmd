@@ -83,16 +83,6 @@ for the sake of it.
 
 Let's do Q-Q and frequency histograms
 ```{r}
-with(teeth_data, { 
-  qqnorm(nontreated_N, main="Normal Q-Q plot for nontreated_N")
-  qqnorm(treated_N, main="Normal Q-Q plot for treated_N")
-  qqnorm(treated_gr_N, main="Normal Q-Q plot for treated_gr_N")
-  }) 
-  
-```
-... and frequency distributions
-
-```{r}
 
 draw_histogram_curve <- function(data, main_title) {
   

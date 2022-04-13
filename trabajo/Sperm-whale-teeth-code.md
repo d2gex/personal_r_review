@@ -174,10 +174,9 @@ This is not required for linear regression to be a valid model however we do it
 for the sake of it.
 #### Do the observations for Nitrogen follow a normal distribution?
 
-We do not need to check whether the dependent and independent variables follow a normalLet's graph the Q-Q plots for all Nitrogen-like variables
+Let's do Q-Q and frequency histograms
 
 ```r
-par(mfrow = c(3, 1))
 with(teeth_data, { 
   qqnorm(nontreated_N, main="Normal Q-Q plot for nontreated_N")
   qqnorm(treated_N, main="Normal Q-Q plot for treated_N")
@@ -185,22 +184,63 @@ with(teeth_data, {
   }) 
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
+... and frequency distributions
 
-#### Do the observations for Carbon follow a normal distribution?
-
-Let's graph the Q-Q plots for all Carbon-like variables
 
 ```r
-par(mfrow = c(3, 1))
-with(teeth_data, { 
-  qqnorm(nontreated_C, main="Normal Q-Q plot for nontreated_C")
-  qqnorm(treated_C, main="Normal Q-Q plot for treated_C")
-  qqnorm(treated_gr_C, main="Normal Q-Q plot for treated_gr_C")
+draw_histogram_curve <- function(data, main_title) {
+  
+  bins <- ceiling(abs(max(data)) - min(data))
+  hist(data, 
+       breaks = seq(min(data), max(data), length.out = bins), 
+       main=main_title, prob=TRUE)
+  lines(density(data))
+  
+}
+
+with(teeth_data, {
+  par(mfrow = c(1, 2))
+  qqnorm(nontreated_N, main="Normal Q-Q plot for nontreated_N")
+  draw_histogram_curve(nontreated_N, "Frequency plot for nontreated_N")
+  
+  par(mfrow = c(1, 2))
+  qqnorm(treated_N, main="Normal Q-Q plot for treated_N")
+  draw_histogram_curve(treated_N, "Frequency plot for treated_N")
+  
+  par(mfrow = c(1, 2))
+  qqnorm(treated_gr_N, main="Normal Q-Q plot for treated_gr_N")
+  draw_histogram_curve(treated_gr_N, "Frequency plot for treated_gr_N")
+  
+ 
   }) 
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-3.png)<!-- -->
+
+#### Do the observations for Carbon follow a normal distribution?
+
+Let's graph the Q-Q plots  and frequency distributions for all Carbon-like variables
+
+```r
+with(teeth_data, {
+  par(mfrow = c(1, 2))
+  qqnorm(nontreated_C, main="Normal Q-Q plot for nontreated_C")
+  draw_histogram_curve(nontreated_N, "Frequency plot for nontreated_C")
+  
+  par(mfrow = c(1, 2))
+  qqnorm(treated_C, main="Normal Q-Q plot for treated_C")
+  draw_histogram_curve(treated_N, "Frequency plot for ttreated_C")
+  
+  par(mfrow = c(1, 2))
+  qqnorm(treated_gr_C, main="Normal Q-Q plot for treated_gr_C")
+  draw_histogram_curve(treated_gr_N, "Frequency plot for treated_gr_C")
+  
+ 
+  }) 
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-8-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-8-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-8-3.png)<!-- -->
 
 
 It is difficult to conclude anything about the normality of both Carbon and Nitrogen observations. We will run *Shapiro-Will normality tests* where the null hypothesis is that the observations follows a normal distribution.
@@ -239,7 +279,7 @@ the same element.
 plot(teeth_data, main="Ploting every two pair of variables")
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 We can see that all pair of variables of the same element seem to follow a positive tight correlation. We'll see this later on. For example, **treated_N** on cell [5,5] seems to be correlated to **treated_gr_N** on cell [1,5]. However, same cell [5,5] with **treated_gr_C** in cell [2,2] via cell [2,5] the shape of the relationship is weird - it doesn't follow a sort of straight line and a positive slope.
 
@@ -263,7 +303,7 @@ only_N_data <- teeth_data[,c(3,5,1)]
 boxplot(only_C_data)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
 Let's compare non-treated sample C values with treated sample C values (without graphite) using a Paired Samples Wilcoxon Signed-rank test (non-parametric)
 
@@ -289,7 +329,7 @@ What about N?
 boxplot(only_N_data)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 ```r
 wilcox.test(teeth_data$nontreated_N, teeth_data$treated_N, paired=TRUE)
@@ -363,7 +403,7 @@ scatterplot(nontreated_C ~ treated_C, data=teeth_data,
    main="Scatterplot for C values")
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 
 ```r
@@ -372,7 +412,7 @@ scatterplot(nontreated_N ~ treated_N, data=teeth_data,
    main="Scatterplot for N values")
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 ## Dispersion of differences
 
 
@@ -430,14 +470,14 @@ summary(N_difference)
 boxplot(C_difference)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
 
 ```r
 boxplot(N_difference)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 #DOUBT 
 *Not sure if I should remove all these outliers... Looks like the differences are pretty varied?*
@@ -479,7 +519,7 @@ summary(mC)
 plot(mC)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-29-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-29-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-29-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-29-4.png)<!-- -->
 
 In the first plot it looks like the residuals are pretty dispersed... Not good?
 <span style="color:blue">Quite the contrary. It is actually a very good one as most points can be squared in a rectangle which longer sides run parallel to the x-axis</span>.
@@ -521,7 +561,7 @@ summary(mN)
 plot(mN)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-31-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-31-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-31-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-31-4.png)<!-- -->
 In the first graph some residuals are dispersed too... Not good again? I wonder if it would be better if we removed the outliers that are seen in the boxplots of differences.
 
 ## Removing outliers
@@ -565,7 +605,7 @@ summary(mCsin)
 plot(mCsin)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-34-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-34-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-34-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-34-4.png)<!-- -->
 
 Umm.. Is this considered better?
 
@@ -600,7 +640,7 @@ summary(mNsin)
 plot(mNsin)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-4.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-36-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-36-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-36-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-36-4.png)<!-- -->
 Not sure if this way the model got better really...
 
 
@@ -658,7 +698,7 @@ ggplot(teeth_data, aes(nontreated_C, treated_C)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
 
 ```r
 ggplot(teeth_data, aes(nontreated_N, treated_N)) +
@@ -675,7 +715,7 @@ ggplot(teeth_data, aes(nontreated_N, treated_N)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
 
 
 ## Conclusions
