@@ -81,9 +81,8 @@ This is not required for linear regression to be a valid model however we do it
 for the sake of it.
 #### Do the observations for Nitrogen follow a normal distribution?
 
-We do not need to check whether the dependent and independent variables follow a normalLet's graph the Q-Q plots for all Nitrogen-like variables
+Let's do Q-Q and frequency histograms
 ```{r}
-par(mfrow = c(3, 1))
 with(teeth_data, { 
   qqnorm(nontreated_N, main="Normal Q-Q plot for nontreated_N")
   qqnorm(treated_N, main="Normal Q-Q plot for treated_N")
@@ -91,16 +90,58 @@ with(teeth_data, {
   }) 
   
 ```
+... and frequency distributions
+
+```{r}
+
+draw_histogram_curve <- function(data, main_title) {
+  
+  bins <- ceiling(abs(max(data)) - min(data))
+  hist(data, 
+       breaks = seq(min(data), max(data), length.out = bins), 
+       main=main_title, prob=TRUE)
+  lines(density(data))
+  
+}
+
+with(teeth_data, {
+  par(mfrow = c(1, 2))
+  qqnorm(nontreated_N, main="Normal Q-Q plot for nontreated_N")
+  draw_histogram_curve(nontreated_N, "Frequency plot for nontreated_N")
+  
+  par(mfrow = c(1, 2))
+  qqnorm(treated_N, main="Normal Q-Q plot for treated_N")
+  draw_histogram_curve(treated_N, "Frequency plot for treated_N")
+  
+  par(mfrow = c(1, 2))
+  qqnorm(treated_gr_N, main="Normal Q-Q plot for treated_gr_N")
+  draw_histogram_curve(treated_gr_N, "Frequency plot for treated_gr_N")
+  
+ 
+  }) 
+  
+```
 
 #### Do the observations for Carbon follow a normal distribution?
 
-Let's graph the Q-Q plots for all Carbon-like variables
+Let's graph the Q-Q plots  and frequency distributions for all Carbon-like variables
 ```{r}
-par(mfrow = c(3, 1))
-with(teeth_data, { 
+
+
+with(teeth_data, {
+  par(mfrow = c(1, 2))
   qqnorm(nontreated_C, main="Normal Q-Q plot for nontreated_C")
+  draw_histogram_curve(nontreated_N, "Frequency plot for nontreated_C")
+  
+  par(mfrow = c(1, 2))
   qqnorm(treated_C, main="Normal Q-Q plot for treated_C")
+  draw_histogram_curve(treated_N, "Frequency plot for ttreated_C")
+  
+  par(mfrow = c(1, 2))
   qqnorm(treated_gr_C, main="Normal Q-Q plot for treated_gr_C")
+  draw_histogram_curve(treated_gr_N, "Frequency plot for treated_gr_C")
+  
+ 
   }) 
   
 ```
