@@ -517,7 +517,7 @@ shapiro.test(resid_values_mgc)
 ## data:  resid_values_mgc
 ## W = 0.97932, p-value = 0.8071
 ```
-Non of the two residuals seems to be normally distributed although the treated with folic acid approaches close to significant. 
+Both results seems to suggest that the two residuals for Carbon and Nitrogen, respectively,  are indeed normally distributed given that their p-value > 0.5. Also when such residuals are plotted they seem to have certain recognisable squareness. The histograms follows a sort of symmetric bell-shape curve. Boxplots of residuals do have certain symmetry too.
 
 
 ## How would a simple regression line fit for non_treated vs treated (both with and without graphite) for N?
@@ -638,8 +638,7 @@ shapiro.test(resid_values_mgn)
 As for Carbon non of the residuals seem to be normally distributed
 
 ## Heteroscedasticity test
-We would expect that if residuals in both samples (C and N) aren't normally distributed, the heteroscedasticity would also fail but not very far off as the p-values
-of the hypothesis tests used for normality were that too far away from the rejection area.
+We would expect that if residuals in both samples (C and N) are normally distributed and seem to show a certain squareness, they would also be homoscedastic. To check for it we use the Breusch-Pagan test which null hypothesis is that homoscedasticity actually exist.
 
 
 ```r
@@ -665,7 +664,7 @@ bptest(mC)
 ## data:  mC
 ## BP = 1.3178, df = 1, p-value = 0.251
 ```
-Both tests show that heteroscedasticity is not singificant.
+Both tests suggest that we aren't unable to reject the null hypothesis so the residuals show homoscedasticity.
 
 
 ## Best fitted line vs Linear regression

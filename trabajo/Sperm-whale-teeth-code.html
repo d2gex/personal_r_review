@@ -664,7 +664,7 @@ boxplot(resid_values_mgc)</code></pre>
 ## 
 ## data:  resid_values_mgc
 ## W = 0.97932, p-value = 0.8071</code></pre>
-<p>Non of the two residuals seems to be normally distributed although the treated with folic acid approaches close to significant.</p>
+<p>Both results seems to suggest that the two residuals for Carbon and Nitrogen, respectively, are indeed normally distributed given that their p-value &gt; 0.5. Also when such residuals are plotted they seem to have certain recognisable squareness. The histograms follows a sort of symmetric bell-shape curve. Boxplots of residuals do have certain symmetry too.</p>
 </div>
 <div id="how-would-a-simple-regression-line-fit-for-non_treated-vs-treated-both-with-and-without-graphite-for-n" class="section level2">
 <h2>How would a simple regression line fit for non_treated vs treated (both with and without graphite) for N?</h2>
@@ -745,7 +745,7 @@ boxplot(resid_values_mgn)</code></pre>
 </div>
 <div id="heteroscedasticity-test" class="section level2">
 <h2>Heteroscedasticity test</h2>
-<p>We would expect that if residuals in both samples (C and N) aren’t normally distributed, the heteroscedasticity would also fail but not very far off as the p-values of the hypothesis tests used for normality were that too far away from the rejection area.</p>
+<p>We would expect that if residuals in both samples (C and N) are normally distributed and seem to show a certain squareness, they would also be homoscedastic. To check for it we use the Breusch-Pagan test which null hypothesis is that homoscedasticity actually exist.</p>
 <pre class="r"><code>bptest(mN)</code></pre>
 <pre><code>## 
 ##  studentized Breusch-Pagan test
@@ -758,7 +758,7 @@ boxplot(resid_values_mgn)</code></pre>
 ## 
 ## data:  mC
 ## BP = 1.3178, df = 1, p-value = 0.251</code></pre>
-<p>Both tests show that heteroscedasticity is not singificant.</p>
+<p>Both tests suggest that we aren’t unable to reject the null hypothesis so the residuals show homoscedasticity.</p>
 </div>
 <div id="best-fitted-line-vs-linear-regression" class="section level2">
 <h2>Best fitted line vs Linear regression</h2>
