@@ -143,7 +143,7 @@ normality = sapply(teeth_data, shapiro.test)
 normality
 ```
 
-We can see that we cannot reject the null hypothesis for  **treated_gr_N and treated_N** as their p-values > 0.5, so this may suggest that they are indeed normally distributed. The value for **nontreated_N** and all for **Carbon** don't seem to follow a normal distribution, with the former very close to the rejection area.
+We can see that we cannot reject the null hypothesis for  **treated_gr_N and treated_N** as their p-values > 0.05, so this may suggest that they are indeed normally distributed. The value for **nontreated_N** and all for **Carbon** don't seem to follow a normal distribution, with the former very close to the rejection area.
 
 ### Matrix of graphs showing correlation
 Again, this isn't fully required but it provides us with a landscape to visually confirm the correlation between observation sets of
@@ -153,16 +153,16 @@ the same element.
 plot(teeth_data, main="Ploting every two pair of variables")
 ```
 
-We can see that all pair of variables of the same element seem to follow a positive tight correlation. We'll see this later on. For example, **treated_N** on cell [5,5] seems to be correlated to **treated_gr_N** on cell [1,5]. However, same cell [5,5] with **treated_gr_C** in cell [2,2] via cell [2,5] the shape of the relationship is weird - it doesn't follow a sort of straight line and a positive slope.
+We can see that all pair of variables of the same element seem to follow a positive tight correlation. We'll see this later on. For example, **treated_N** on cell [5,5] seems to be correlated to **treated_gr_N** on cell [1,5]. However, same cell [5,5] with **treated_gr_C** in cell [2,2] via cell [2,5] the shape of the relationship is weird - it doesn't follow a sort of straight line or a positive slope.
 
 ## Differences between samples
 
 Now we want to know if the samples with different treatments differ significantly from each other.
-I thought to use the Paired Samples Wilcoxon signed rank test (non-parametric) for all of them - not sure if this is the best decision but I guess it should serve us.
 
+### Testing for carbon isotope sample differences
 
-1. Does the acid treatment have a visible effect on C and N isotope values? 
-To answer this, we are comparing **non-treated samples** (boxplot 1) with **treated samples (without graphite)** (boxplot 2).
+1. Does the acid treatment have a visible effect on C isotope values? 
+Let's boxplot the **non-treated samples** vs **treated samples**
 
 ```{r}
 only_C_data <- teeth_data[,c(4,6,2)]
@@ -170,49 +170,47 @@ only_N_data <- teeth_data[,c(3,5,1)]
 ```
 
 ```{r}
-boxplot(only_C_data)
+boxplot(only_C_data, main="Carbon isotope values for the different treatments")
 ```
 
-Let's compare non-treated sample C values with treated sample C values (without graphite) using a Paired Samples Wilcoxon Signed-rank test (non-parametric)
+We will use Wilconxon Signed-Rand (non-parametric) to test two non-independent samples that do not follow a normal distribution as it seems the case as shown earlier on. The null hyptothesis is that the average differences is zero so both samples are pretty similar. Therefore let's first compare non-treated sample C values with treated sample C values (without graphite) 
 
 ```{r}
 wilcox.test(teeth_data$nontreated_C, teeth_data$treated_C, paired=TRUE)
 ```
-The p is less than 0,05 for this one, so **the acid treatment does alter C values significantly.**
-
-What about N?
-
-```{r}
-boxplot(only_N_data)
-```
-```{r}
-wilcox.test(teeth_data$nontreated_N, teeth_data$treated_N, paired=TRUE)
-```
-The p is less than 0,05 for this one too, so **the acid treatment does alter N values significantly** as well.
+The p-values is << 0.05 for this one, so **the acid treatment does alter C values significantly.**
 
 
-
-2. Does graphite have a visible effect on C and N isotope values?
-
-<span style="color:blue">is this step necessary? If I did not misunderstand the process the acid treatment and graphite are sequential phases
-with the former being run ahead of the latter. In such case and given that our earlier wilcox test altered the C and N values already, the test
-on graphite would then be irrelevant? </span>.
-
+2. Does graphite have a visible effect on carbon isotope values?
 To see this we are comparing treated samples without a graphite layer vs treated samples with a graphite layer.
 
-First for C:
 
 ```{r}
 wilcox.test(teeth_data$treated_C, teeth_data$treated_gr_C, paired=TRUE)
 ```
-The p value is larger than 0,05, this means that **graphite seems to not alter the C values significantly.** (this would mean if we were to use the treated half-section of the tooth in the future, cleaning off the graphite is unnecesarry. We could leave it there and have better visibility of growth layers this way.) 
+The p-value > 0,05, this means that **graphite seems to not alter the C values significantly.**. We do not have grounds to think that both samples are significantlly different.
 
-What about N?
+
+### Testing for nitrogen isotope sample differences
+
+1. Does the acid treatment have a visible effect on N isotope values? 
+```{r}
+boxplot(only_N_data, main="Nitrogen isotope values for the different treatments")
+```
+Similarly as for Carbon we run Wilcox test:
+
+```{r}
+wilcox.test(teeth_data$nontreated_N, teeth_data$treated_N, paired=TRUE)
+```
+The p < 0,05 for this one too, so **the acid treatment does alter N values significantly** as well. 
+
+
+2. Does graphite have a visible effect  N isotope values?
 
 ```{r}
 wilcox.test(teeth_data$treated_N, teeth_data$treated_gr_N, paired=TRUE)
 ```
-Same as with C, the p value is larger than 0,05, this means that **graphite seems to not alter the N values significantly.** So at this point I think we can leave the graphite data behind as it became insignificant.
+Same as with C, the p-value > 0,05, this means that **graphite seems to not alter the N values significantly.** So at this point I think we can leave the graphite data behind as it became insignificant.
 
 
 ## Scatterplots 
@@ -233,114 +231,97 @@ scatterplot(nontreated_N ~ treated_N, data=teeth_data,
    xlab="Treated sample N values", ylab="Non-treated sample N values",
    main="Scatterplot for N values")
 ```
-## Dispersion of differences
 
+# Fitting a a simple regression line
 
-Maybe we should take a look at how dispersed are the differences for these values. For this we could create new variables by subtracting one variable from another (values before treatment - values after treatment):
+## How would a simple regression line fit for non_treated vs treated (both with and without graphite) for C?
 
-```{r}
-teeth_data$difC <- teeth_data$nontreated_C - teeth_data$treated_C
-teeth_data$difN <- teeth_data$nontreated_N - teeth_data$treated_N
-```
-
-```{r}
-C_difference <- teeth_data[,c(7)]
-N_difference <- teeth_data[,c(8)]
-```
-
-```{r}
-sd(C_difference)
-```
-```{r}
-sd(N_difference)
-```
-```{r}
-summary(C_difference)
-```
-```{r}
-summary(N_difference)
-```
-
-```{r}
-boxplot(C_difference)
-```
-
-```{r}
-boxplot(N_difference)
-```
-
-#DOUBT 
-*Not sure if I should remove all these outliers... Looks like the differences are pretty varied?*
-I also tested the distribution of these differences for normality and both do follow a normal distribution.
-
-
-# Trying out a model
-
-Just out of curiosity, I am trying to apply a linear regression model to this data.
 
 ```{r}
 mC <- lm (treated_C ~ nontreated_C, teeth_data)
 summary(mC)
 ```
 ```{r}
-plot(mC)
+mgC <- lm (treated_gr_C ~ nontreated_C, teeth_data)
+summary(mgC)
 ```
 
-In the first plot it looks like the residuals are pretty dispersed... Not good?
-<span style="color:blue">Quite the contrary. It is actually a very good one as most points can be squared in a rectangle which longer sides run parallel to the x-axis</span>.
+In both cases it occurs the following:
 
-Trying N now:
+1. slope coefficient are very significant
+2. The intercept is within the non-rejection area with p-value < 0.05.
+3. R Square are pretty good
 
-<span style="color:blue">Look at the p-value! It is amazingly significant. It is 0.000000000000000443, this is a pretty strong indication that the
-linear regression model is a good fit. In addition look at the Rsquare which explains how much the variance is explained by our model, that is to say, SSE/SSR. This is saying that 90% of the variance is explained by the model itself. In other words, our regression model is capable of explaining most
-of the observations with a marginal error. Good for you!</span>
+So it seems that the linear regression is a pretty good estimator. It would be interesting to see if the residuals are normally distributed.
+
+```{r}
+resid_values_mc <- residuals(mC)
+resid_values_mgc <- residuals(mgC)
+par(mfrow = c(2, 2))
+hist(resid_values_mc, main="")
+boxplot(resid_values_mc)
+mtext("Histogram and boxplot for non-graphite lm's residuals", side = 3, line = -1, outer = TRUE)
+mtext("Histogram and boxplot for graphite lm's residuals", side = 3, line = -15, outer = TRUE)
+hist(resid_values_mgc, main="")
+boxplot(resid_values_mgc)
+```
+
+```{r}
+plot(resid_values_mc, main="Squareness of non-graphite residuals")
+plot(resid_values_mgc, main ="Squareness of graphite residuals")
+```
+```{r}
+shapiro.test(resid_values_mc)
+shapiro.test(resid_values_mgc)
+```
+Non of the two residuals seems to be normally distributed although the treated with folic acid approaches close to significant. 
+
+
+## How would a simple regression line fit for non_treated vs treated (both with and without graphite) for N?
 
 ```{r}
 mN <- lm (treated_N ~ nontreated_N, teeth_data)
 summary(mN)
 ```
-```{r}
-plot(mN)
-```
-In the first graph some residuals are dispersed too... Not good again? I wonder if it would be better if we removed the outliers that are seen in the boxplots of differences.
-
-## Removing outliers
-
-I will try to remove some outliers to see if the situation gets better. 
-<span style="color:blue">If you look at the new p-value without the outliers, its value has been decreased. Looking at it in terms of visual representation, with the "outliers" gone the shape lost its "squareness" hence the p-value is worse than the original test.</span>
 
 ```{r}
-teeth_sin_outliers <- teeth_data %>% slice(-c(7, 1, 17, 5, 12))
+mgN <- lm (treated_gr_N ~ nontreated_N, teeth_data)
+summary(mgN)
+```
+In both cases it occurs the following:
+
+1. slope coefficient are very significant
+2. The intercept is quasi-significant for treated_N and significant for treated_gr_N
+3. R Square are pretty good
+
+So it seems that the linear regression is a pretty good estimator. It would be interesting to see if the residuals are normally distributed.
+
+```{r}
+resid_values_mn <- residuals(mN)
+resid_values_mgn <- residuals(mgN)
+par(mfrow = c(2, 2))
+hist(resid_values_mn, main="")
+boxplot(resid_values_mn)
+mtext("Histogram and boxplot for non-graphite residuals", side = 3, line = -1, outer = TRUE)
+mtext("Histogram and boxplot for graphite residuals", side = 3, line = -15, outer = TRUE)
+hist(resid_values_mgn, main="")
+boxplot(resid_values_mgn)
+```
+```{r}
+plot(resid_values_mn, main="Squareness of non-graphite residuals")
+plot(resid_values_mgn, main="Squareness of graphite residuals")
 ```
 
 ```{r}
-mCsin <- lm (treated_C ~ nontreated_C, teeth_sin_outliers)
-summary(mCsin)
-```
-```{r}
-plot(mCsin)
+shapiro.test(resid_values_mn)
+shapiro.test(resid_values_mgn)
 ```
 
-Umm.. Is this considered better?
-
-```{r}
-mNsin <- lm (treated_N ~ nontreated_N, teeth_sin_outliers)
-summary(mNsin)
-```
-```{r}
-plot(mNsin)
-```
-Not sure if this way the model got better really...
-
+As for Carbon non of the residuals seem to be normally distributed
 
 ## Heteroscedasticity test
-
-<span style="color:blue">Yeah, the null hypothesis here is that there is no Heteroscedasticity but the the p-values are saying that we should
-reject it. However I am not sure about this test being crucial for the overall conclusions.</span>.
-
-Here I tried some test I found for heteroscedasticity (Breusch-Pagan test). Not sure if it fits well here, but...
-
-
+We would expect that if residuals in both samples (C and N) aren't normally distributed, the heteroscedasticity would also fail but not very far off as the p-values
+of the hypothesis tests used for normality were that too far away from the rejection area.
 
 ```{r}
 
@@ -349,10 +330,13 @@ bptest(mN)
 ```{r}
 bptest(mC)
 ```
-The test rejects the hypothesis of heteroscedasticity, so can we then say the variance in differences is low and the model is actually good?
+Both tests show that heteroscedasticity is not singificant.
 
 
-## Just some additional ggplots
+## Best fitted line vs Linear regression
+
+### Carbon
+
 
 ```{r}
 ggplot(teeth_data, aes(nontreated_C, treated_C)) +
@@ -360,35 +344,11 @@ ggplot(teeth_data, aes(nontreated_C, treated_C)) +
   geom_smooth(se = FALSE) +
   geom_smooth(method = lm, col = "tomato", se = FALSE)
 ```
+### Nitrogen
+
 ```{r}
 ggplot(teeth_data, aes(nontreated_N, treated_N)) +
   geom_point(shape = 21, size = 3) + 
   geom_smooth(se = FALSE) +
   geom_smooth(method = lm, col = "tomato", se = FALSE)
 ```
-
-
-## Conclusions
-
-
-I think we are done with linear regression. It is pretty clear that there is a relationship.
-
-
-## Improvements
-
-1. Contextualise the plots by adding meaningful titles and adding axis names for those that have them missing
-2. Perhaps doing a one-way Anova in order to determine that the graphite dust doesn't alter the linear relationship between non-treated vs treated. Given
-that Anova looks at explaining the linear relationship between variables with the less complexity possible, I would expect that the non-treated vs treated-acid-only would be enough. In other words, that Anova will tell us to get rid of the graphite phase because it does not add any real substantial
-value, only complexity. Reading it from another angle, that would mean that we can correlate safely non-treated vs treated-with-acid-and-graphite. That
-would also be backed up by the fact that when we checked whether graphite altered the values of C and N, the test result was that it didn't. It is a 
-transitive relationship if A -> B and B -> C --> A --> C. In our case would be if Non-Treated vs Treated-Acid_only has a relationship and Treated-Acid-Only
-vs Treated-Acid-Graphite changes nothing then Non-Treated vs Treated-Acid-Graphite do have too a linear relationship. Anova would tell us exactly that I believe?
-
-I could give it a go to Anova myself if you like - primarily I would just ensure that we aren't overengineering it.
-
-
-
-
-
-
-
