@@ -654,6 +654,42 @@ bptest(mN)
 ```
 
 ```r
+bptest(mgN)
+```
+
+```
+## 
+## 	studentized Breusch-Pagan test
+## 
+## data:  mgN
+## BP = 1.3234, df = 1, p-value = 0.25
+```
+
+```r
+bptest(mgC)
+```
+
+```
+## 
+## 	studentized Breusch-Pagan test
+## 
+## data:  mgC
+## BP = 0.1143, df = 1, p-value = 0.7353
+```
+
+```r
+bptest(mC)
+```
+
+```
+## 
+## 	studentized Breusch-Pagan test
+## 
+## data:  mC
+## BP = 1.3178, df = 1, p-value = 0.251
+```
+
+```r
 bptest(mC)
 ```
 

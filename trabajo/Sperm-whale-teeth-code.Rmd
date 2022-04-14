@@ -325,6 +325,10 @@ We would expect that if residuals in both samples (C and N) are normally distrib
 ```{r}
 
 bptest(mN)
+bptest(mgN)
+bptest(mgC)
+bptest(mC)
+
 ```
 ```{r}
 bptest(mC)
