@@ -174,33 +174,61 @@ This is not required for linear regression to be a valid model however we do it
 for the sake of it.
 #### Do the observations for Nitrogen follow a normal distribution?
 
-We do not need to check whether the dependent and independent variables follow a normalLet's graph the Q-Q plots for all Nitrogen-like variables
+Let's do Q-Q and frequency histograms
 
 ```r
-par(mfrow = c(3, 1))
-with(teeth_data, { 
+draw_histogram_curve <- function(data, main_title) {
+  
+  bins <- ceiling(abs(max(data)) - min(data))
+  hist(data, 
+       breaks = seq(min(data), max(data), length.out = bins), 
+       main=main_title, prob=TRUE)
+  lines(density(data))
+  
+}
+
+with(teeth_data, {
+  par(mfrow = c(1, 2))
   qqnorm(nontreated_N, main="Normal Q-Q plot for nontreated_N")
+  draw_histogram_curve(nontreated_N, "Frequency plot for nontreated_N")
+  
+  par(mfrow = c(1, 2))
   qqnorm(treated_N, main="Normal Q-Q plot for treated_N")
+  draw_histogram_curve(treated_N, "Frequency plot for treated_N")
+  
+  par(mfrow = c(1, 2))
   qqnorm(treated_gr_N, main="Normal Q-Q plot for treated_gr_N")
+  draw_histogram_curve(treated_gr_N, "Frequency plot for treated_gr_N")
+  
+ 
   }) 
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
 
 #### Do the observations for Carbon follow a normal distribution?
 
-Let's graph the Q-Q plots for all Carbon-like variables
+Let's graph the Q-Q plots  and frequency distributions for all Carbon-like variables
 
 ```r
-par(mfrow = c(3, 1))
-with(teeth_data, { 
+with(teeth_data, {
+  par(mfrow = c(1, 2))
   qqnorm(nontreated_C, main="Normal Q-Q plot for nontreated_C")
+  draw_histogram_curve(nontreated_N, "Frequency plot for nontreated_C")
+  
+  par(mfrow = c(1, 2))
   qqnorm(treated_C, main="Normal Q-Q plot for treated_C")
+  draw_histogram_curve(treated_N, "Frequency plot for ttreated_C")
+  
+  par(mfrow = c(1, 2))
   qqnorm(treated_gr_C, main="Normal Q-Q plot for treated_gr_C")
+  draw_histogram_curve(treated_gr_N, "Frequency plot for treated_gr_C")
+  
+ 
   }) 
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-7-3.png)<!-- -->
 
 
 It is difficult to conclude anything about the normality of both Carbon and Nitrogen observations. We will run *Shapiro-Will normality tests* where the null hypothesis is that the observations follows a normal distribution.
@@ -228,7 +256,7 @@ normality
 ## data.name "X[[i]]"                      "X[[i]]"
 ```
 
-We can see that we cannot reject the null hypothesis for  **treated_gr_N and treated_N** as their p-values > 0.5, so this may suggest that they are indeed normally distributed. The value for **nontreated_N** and all for **Carbon** don't seem to follow a normal distribution, with the former very close to the rejection area.
+We can see that we cannot reject the null hypothesis for  **treated_gr_N and treated_N** as their p-values > 0.05, so this may suggest that they are indeed normally distributed. The value for **nontreated_N** and all for **Carbon** don't seem to follow a normal distribution, with the former very close to the rejection area.
 
 ### Matrix of graphs showing correlation
 Again, this isn't fully required but it provides us with a landscape to visually confirm the correlation between observation sets of
@@ -241,16 +269,16 @@ plot(teeth_data, main="Ploting every two pair of variables")
 
 ![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
-We can see that all pair of variables of the same element seem to follow a positive tight correlation. We'll see this later on. For example, **treated_N** on cell [5,5] seems to be correlated to **treated_gr_N** on cell [1,5]. However, same cell [5,5] with **treated_gr_C** in cell [2,2] via cell [2,5] the shape of the relationship is weird - it doesn't follow a sort of straight line and a positive slope.
+We can see that all pair of variables of the same element seem to follow a positive tight correlation. We'll see this later on. For example, **treated_N** on cell [5,5] seems to be correlated to **treated_gr_N** on cell [1,5]. However, same cell [5,5] with **treated_gr_C** in cell [2,2] via cell [2,5] the shape of the relationship is weird - it doesn't follow a sort of straight line or a positive slope.
 
 ## Differences between samples
 
 Now we want to know if the samples with different treatments differ significantly from each other.
-I thought to use the Paired Samples Wilcoxon signed rank test (non-parametric) for all of them - not sure if this is the best decision but I guess it should serve us.
 
+### Testing for carbon isotope sample differences
 
-1. Does the acid treatment have a visible effect on C and N isotope values? 
-To answer this, we are comparing **non-treated samples** (boxplot 1) with **treated samples (without graphite)** (boxplot 2).
+1. Does the acid treatment have a visible effect on C isotope values? 
+Let's boxplot the **non-treated samples** vs **treated samples**
 
 
 ```r
@@ -260,12 +288,12 @@ only_N_data <- teeth_data[,c(3,5,1)]
 
 
 ```r
-boxplot(only_C_data)
+boxplot(only_C_data, main="Carbon isotope values for the different treatments")
 ```
 
 ![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
-Let's compare non-treated sample C values with treated sample C values (without graphite) using a Paired Samples Wilcoxon Signed-rank test (non-parametric)
+We will use Wilconxon Signed-Rand (non-parametric) to test two non-independent samples that do not follow a normal distribution as it seems the case as shown earlier on. The null hyptothesis is that the average differences is zero so both samples are pretty similar. Therefore let's first compare non-treated sample C values with treated sample C values (without graphite) 
 
 
 ```r
@@ -280,42 +308,12 @@ wilcox.test(teeth_data$nontreated_C, teeth_data$treated_C, paired=TRUE)
 ## V = 52, p-value = 7.057e-05
 ## alternative hypothesis: true location shift is not equal to 0
 ```
-The p is less than 0,05 for this one, so **the acid treatment does alter C values significantly.**
-
-What about N?
+The p-values is << 0.05 for this one, so **the acid treatment does alter C values significantly.**
 
 
-```r
-boxplot(only_N_data)
-```
-
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
-
-```r
-wilcox.test(teeth_data$nontreated_N, teeth_data$treated_N, paired=TRUE)
-```
-
-```
-## 
-## 	Wilcoxon signed rank exact test
-## 
-## data:  teeth_data$nontreated_N and teeth_data$treated_N
-## V = 70, p-value = 0.0004601
-## alternative hypothesis: true location shift is not equal to 0
-```
-The p is less than 0,05 for this one too, so **the acid treatment does alter N values significantly** as well.
-
-
-
-2. Does graphite have a visible effect on C and N isotope values?
-
-<span style="color:blue">is this step necessary? If I did not misunderstand the process the acid treatment and graphite are sequential phases
-with the former being run ahead of the latter. In such case and given that our earlier wilcox test altered the C and N values already, the test
-on graphite would then be irrelevant? </span>.
-
+2. Does graphite have a visible effect on carbon isotope values?
 To see this we are comparing treated samples without a graphite layer vs treated samples with a graphite layer.
 
-First for C:
 
 
 ```r
@@ -330,9 +328,37 @@ wilcox.test(teeth_data$treated_C, teeth_data$treated_gr_C, paired=TRUE)
 ## V = 166, p-value = 0.1772
 ## alternative hypothesis: true location shift is not equal to 0
 ```
-The p value is larger than 0,05, this means that **graphite seems to not alter the C values significantly.** (this would mean if we were to use the treated half-section of the tooth in the future, cleaning off the graphite is unnecesarry. We could leave it there and have better visibility of growth layers this way.) 
+The p-value > 0,05, this means that **graphite seems to not alter the C values significantly.**. We do not have grounds to think that both samples are significantlly different.
 
-What about N?
+
+### Testing for nitrogen isotope sample differences
+
+1. Does the acid treatment have a visible effect on N isotope values? 
+
+```r
+boxplot(only_N_data, main="Nitrogen isotope values for the different treatments")
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+Similarly as for Carbon we run Wilcox test:
+
+
+```r
+wilcox.test(teeth_data$nontreated_N, teeth_data$treated_N, paired=TRUE)
+```
+
+```
+## 
+## 	Wilcoxon signed rank exact test
+## 
+## data:  teeth_data$nontreated_N and teeth_data$treated_N
+## V = 70, p-value = 0.0004601
+## alternative hypothesis: true location shift is not equal to 0
+```
+The p < 0,05 for this one too, so **the acid treatment does alter N values significantly** as well. 
+
+
+2. Does graphite have a visible effect  N isotope values?
 
 
 ```r
@@ -347,7 +373,7 @@ wilcox.test(teeth_data$treated_N, teeth_data$treated_gr_N, paired=TRUE)
 ## V = 264, p-value = 0.5291
 ## alternative hypothesis: true location shift is not equal to 0
 ```
-Same as with C, the p value is larger than 0,05, this means that **graphite seems to not alter the N values significantly.** So at this point I think we can leave the graphite data behind as it became insignificant.
+Same as with C, the p-value > 0,05, this means that **graphite seems to not alter the N values significantly.** So at this point I think we can leave the graphite data behind as it became insignificant.
 
 
 ## Scatterplots 
@@ -373,80 +399,11 @@ scatterplot(nontreated_N ~ treated_N, data=teeth_data,
 ```
 
 ![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
-## Dispersion of differences
 
+# Fitting a a simple regression line
 
-Maybe we should take a look at how dispersed are the differences for these values. For this we could create new variables by subtracting one variable from another (values before treatment - values after treatment):
+## How would a simple regression line fit for non_treated vs treated (both with and without graphite) for C?
 
-
-```r
-teeth_data$difC <- teeth_data$nontreated_C - teeth_data$treated_C
-teeth_data$difN <- teeth_data$nontreated_N - teeth_data$treated_N
-```
-
-
-```r
-C_difference <- teeth_data[,c(7)]
-N_difference <- teeth_data[,c(8)]
-```
-
-
-```r
-sd(C_difference)
-```
-
-```
-## [1] 0.194227
-```
-
-```r
-sd(N_difference)
-```
-
-```
-## [1] 0.284966
-```
-
-```r
-summary(C_difference)
-```
-
-```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -0.5462 -0.2305 -0.1678 -0.1659 -0.0633  0.2039
-```
-
-```r
-summary(N_difference)
-```
-
-```
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.89027 -0.37738 -0.24373 -0.20597 -0.07623  0.48236
-```
-
-
-```r
-boxplot(C_difference)
-```
-
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
-
-
-```r
-boxplot(N_difference)
-```
-
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
-
-#DOUBT 
-*Not sure if I should remove all these outliers... Looks like the differences are pretty varied?*
-I also tested the distribution of these differences for normality and both do follow a normal distribution.
-
-
-# Trying out a model
-
-Just out of curiosity, I am trying to apply a linear regression model to this data.
 
 
 ```r
@@ -476,19 +433,94 @@ summary(mC)
 ```
 
 ```r
-plot(mC)
+mgC <- lm (treated_gr_C ~ nontreated_C, teeth_data)
+summary(mgC)
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-28-4.png)<!-- -->
+```
+## 
+## Call:
+## lm(formula = treated_gr_C ~ nontreated_C, data = teeth_data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.42374 -0.09110 -0.02797  0.13650  0.49126 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)   0.43338    1.01961   0.425    0.674    
+## nontreated_C  1.01755    0.07923  12.843 2.95e-13 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.222 on 28 degrees of freedom
+## Multiple R-squared:  0.8549,	Adjusted R-squared:  0.8497 
+## F-statistic:   165 on 1 and 28 DF,  p-value: 2.951e-13
+```
 
-In the first plot it looks like the residuals are pretty dispersed... Not good?
-<span style="color:blue">Quite the contrary. It is actually a very good one as most points can be squared in a rectangle which longer sides run parallel to the x-axis</span>.
+In both cases it occurs the following:
 
-Trying N now:
+1. slope coefficient are very significant
+2. The intercept is within the non-rejection area with p-value < 0.05.
+3. R Square are pretty good
 
-<span style="color:blue">Look at the p-value! It is amazingly significant. It is 0.000000000000000443, this is a pretty strong indication that the
-linear regression model is a good fit. In addition look at the Rsquare which explains how much the variance is explained by our model, that is to say, SSE/SSR. This is saying that 90% of the variance is explained by the model itself. In other words, our regression model is capable of explaining most
-of the observations with a marginal error. Good for you!</span>
+So it seems that the linear regression is a pretty good estimator. It would be interesting to see if the residuals are normally distributed.
+
+
+```r
+resid_values_mc <- residuals(mC)
+resid_values_mgc <- residuals(mgC)
+par(mfrow = c(2, 2))
+hist(resid_values_mc, main="")
+boxplot(resid_values_mc)
+mtext("Histogram and boxplot for non-graphite lm's residuals", side = 3, line = -1, outer = TRUE)
+mtext("Histogram and boxplot for graphite lm's residuals", side = 3, line = -15, outer = TRUE)
+hist(resid_values_mgc, main="")
+boxplot(resid_values_mgc)
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+
+
+```r
+plot(resid_values_mc, main="Squareness of non-graphite residuals")
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+
+```r
+plot(resid_values_mgc, main ="Squareness of graphite residuals")
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-22-2.png)<!-- -->
+
+```r
+shapiro.test(resid_values_mc)
+```
+
+```
+## 
+## 	Shapiro-Wilk normality test
+## 
+## data:  resid_values_mc
+## W = 0.97281, p-value = 0.6185
+```
+
+```r
+shapiro.test(resid_values_mgc)
+```
+
+```
+## 
+## 	Shapiro-Wilk normality test
+## 
+## data:  resid_values_mgc
+## W = 0.97932, p-value = 0.8071
+```
+Both results seems to suggest that the two residuals for Carbon and Nitrogen, respectively,  are indeed normally distributed given that their p-value > 0.5. Also when such residuals are plotted they seem to have certain recognisable squareness. The histograms follows a sort of symmetric bell-shape curve. Boxplots of residuals do have certain symmetry too.
+
+
+## How would a simple regression line fit for non_treated vs treated (both with and without graphite) for N?
 
 
 ```r
@@ -517,101 +549,96 @@ summary(mN)
 ## F-statistic: 278.4 on 1 and 28 DF,  p-value: 4.43e-16
 ```
 
-```r
-plot(mN)
-```
-
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-30-4.png)<!-- -->
-In the first graph some residuals are dispersed too... Not good again? I wonder if it would be better if we removed the outliers that are seen in the boxplots of differences.
-
-## Removing outliers
-
-I will try to remove some outliers to see if the situation gets better. 
-<span style="color:blue">If you look at the new p-value without the outliers, its value has been decreased. Looking at it in terms of visual representation, with the "outliers" gone the shape lost its "squareness" hence the p-value is worse than the original test.</span>
-
 
 ```r
-teeth_sin_outliers <- teeth_data %>% slice(-c(7, 1, 17, 5, 12))
-```
-
-
-```r
-mCsin <- lm (treated_C ~ nontreated_C, teeth_sin_outliers)
-summary(mCsin)
+mgN <- lm (treated_gr_N ~ nontreated_N, teeth_data)
+summary(mgN)
 ```
 
 ```
 ## 
 ## Call:
-## lm(formula = treated_C ~ nontreated_C, data = teeth_sin_outliers)
+## lm(formula = treated_gr_N ~ nontreated_N, data = teeth_data)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -0.26595 -0.08844 -0.02197  0.12771  0.28476 
+## -0.49606 -0.10626  0.03736  0.10739  0.46525 
 ## 
 ## Coefficients:
 ##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)  -1.18361    0.83434  -1.419    0.169    
-## nontreated_C  0.89702    0.06469  13.865 1.17e-12 ***
+## (Intercept)   1.30609    0.59763   2.185   0.0374 *  
+## nontreated_N  0.91962    0.04257  21.601   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.1579 on 23 degrees of freedom
-## Multiple R-squared:  0.8931,	Adjusted R-squared:  0.8885 
-## F-statistic: 192.2 on 1 and 23 DF,  p-value: 1.175e-12
+## Residual standard error: 0.216 on 28 degrees of freedom
+## Multiple R-squared:  0.9434,	Adjusted R-squared:  0.9414 
+## F-statistic: 466.6 on 1 and 28 DF,  p-value: < 2.2e-16
+```
+In both cases it occurs the following:
+
+1. slope coefficient are very significant
+2. The intercept is quasi-significant for treated_N and significant for treated_gr_N
+3. R Square are pretty good
+
+So it seems that the linear regression is a pretty good estimator. It would be interesting to see if the residuals are normally distributed.
+
+
+```r
+resid_values_mn <- residuals(mN)
+resid_values_mgn <- residuals(mgN)
+par(mfrow = c(2, 2))
+hist(resid_values_mn, main="")
+boxplot(resid_values_mn)
+mtext("Histogram and boxplot for non-graphite residuals", side = 3, line = -1, outer = TRUE)
+mtext("Histogram and boxplot for graphite residuals", side = 3, line = -15, outer = TRUE)
+hist(resid_values_mgn, main="")
+boxplot(resid_values_mgn)
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+
+```r
+plot(resid_values_mn, main="Squareness of non-graphite residuals")
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+
+```r
+plot(resid_values_mgn, main="Squareness of graphite residuals")
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-27-2.png)<!-- -->
+
+
+```r
+shapiro.test(resid_values_mn)
+```
+
+```
+## 
+## 	Shapiro-Wilk normality test
+## 
+## data:  resid_values_mn
+## W = 0.95445, p-value = 0.2221
 ```
 
 ```r
-plot(mCsin)
-```
-
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-4.png)<!-- -->
-
-Umm.. Is this considered better?
-
-
-```r
-mNsin <- lm (treated_N ~ nontreated_N, teeth_sin_outliers)
-summary(mNsin)
+shapiro.test(resid_values_mgn)
 ```
 
 ```
 ## 
-## Call:
-## lm(formula = treated_N ~ nontreated_N, data = teeth_sin_outliers)
+## 	Shapiro-Wilk normality test
 ## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.47831 -0.13675  0.05912  0.14083  0.31957 
-## 
-## Coefficients:
-##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)   1.12029    0.88471   1.266    0.218    
-## nontreated_N  0.93434    0.06291  14.851 2.82e-13 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.2224 on 23 degrees of freedom
-## Multiple R-squared:  0.9056,	Adjusted R-squared:  0.9015 
-## F-statistic: 220.6 on 1 and 23 DF,  p-value: 2.818e-13
+## data:  resid_values_mgn
+## W = 0.97628, p-value = 0.7203
 ```
 
-```r
-plot(mNsin)
-```
-
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-1.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-2.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-3.png)<!-- -->![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-35-4.png)<!-- -->
-Not sure if this way the model got better really...
-
+As for Carbon non of the residuals seem to be normally distributed
 
 ## Heteroscedasticity test
-
-<span style="color:blue">Yeah, the null hypothesis here is that there is no Heteroscedasticity but the the p-values are saying that we should
-reject it. However I am not sure about this test being crucial for the overall conclusions.</span>.
-
-Here I tried some test I found for heteroscedasticity (Breusch-Pagan test). Not sure if it fits well here, but...
-
-
+We would expect that if residuals in both samples (C and N) are normally distributed and seem to show a certain squareness, they would also be homoscedastic. To check for it we use the Breusch-Pagan test which null hypothesis is that homoscedasticity actually exist.
 
 
 ```r
@@ -627,6 +654,30 @@ bptest(mN)
 ```
 
 ```r
+bptest(mgN)
+```
+
+```
+## 
+## 	studentized Breusch-Pagan test
+## 
+## data:  mgN
+## BP = 1.3234, df = 1, p-value = 0.25
+```
+
+```r
+bptest(mgC)
+```
+
+```
+## 
+## 	studentized Breusch-Pagan test
+## 
+## data:  mgC
+## BP = 0.1143, df = 1, p-value = 0.7353
+```
+
+```r
 bptest(mC)
 ```
 
@@ -637,10 +688,25 @@ bptest(mC)
 ## data:  mC
 ## BP = 1.3178, df = 1, p-value = 0.251
 ```
-The test rejects the hypothesis of heteroscedasticity, so can we then say the variance in differences is low and the model is actually good?
+
+```r
+bptest(mC)
+```
+
+```
+## 
+## 	studentized Breusch-Pagan test
+## 
+## data:  mC
+## BP = 1.3178, df = 1, p-value = 0.251
+```
+Both tests suggest that we aren't unable to reject the null hypothesis so the residuals show homoscedasticity.
 
 
-## Just some additional ggplots
+## Best fitted line vs Linear regression
+
+### Carbon
+
 
 
 ```r
@@ -658,7 +724,9 @@ ggplot(teeth_data, aes(nontreated_C, treated_C)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+### Nitrogen
+
 
 ```r
 ggplot(teeth_data, aes(nontreated_N, treated_N)) +
@@ -675,30 +743,4 @@ ggplot(teeth_data, aes(nontreated_N, treated_N)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
-
-
-## Conclusions
-
-
-I think we are done with linear regression. It is pretty clear that there is a relationship.
-
-
-## Improvements
-
-1. Contextualise the plots by adding meaningful titles and adding axis names for those that have them missing
-2. Perhaps doing a one-way Anova in order to determine that the graphite dust doesn't alter the linear relationship between non-treated vs treated. Given
-that Anova looks at explaining the linear relationship between variables with the less complexity possible, I would expect that the non-treated vs treated-acid-only would be enough. In other words, that Anova will tell us to get rid of the graphite phase because it does not add any real substantial
-value, only complexity. Reading it from another angle, that would mean that we can correlate safely non-treated vs treated-with-acid-and-graphite. That
-would also be backed up by the fact that when we checked whether graphite altered the values of C and N, the test result was that it didn't. It is a 
-transitive relationship if A -> B and B -> C --> A --> C. In our case would be if Non-Treated vs Treated-Acid_only has a relationship and Treated-Acid-Only
-vs Treated-Acid-Graphite changes nothing then Non-Treated vs Treated-Acid-Graphite do have too a linear relationship. Anova would tell us exactly that I believe?
-
-I could give it a go to Anova myself if you like - primarily I would just ensure that we aren't overengineering it.
-
-
-
-
-
-
-
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
