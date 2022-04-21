@@ -16,5 +16,5 @@ write.csv(data, "trabajo/multivariable-analysis/data/corals_spec_totals.csv")
 
 anonymous_transects <- coral_species %>% mutate(years = substr(.[[1]],3,3))
 anonymous_transects <- anonymous_transects[, c(-1)] %>% select(years, everything())
-write.csv(data, "trabajo/multivariable-analysis/data/corals_anonymos_transects.csv")
+write.csv(anonymous_transects, "trabajo/multivariable-analysis/data/corals_anonymos_transects.csv")
 
