@@ -4,36 +4,44 @@ library("plyr")
 library("stringr")
 
 # Read data
-coral_species <- read.csv2("trabajo/multivariable-analysis/data/corals_spec.csv")
+
 
 # Calculate the total covers per year rather per year and transect
-total_covers <- function() {
-  data <- coral_species %>% mutate(years = paste("Y", substr(.[[1]], 2,3)))
-  data <- data[, c(-1)] %>% select(years, everything())
-  data <- aggregate(. ~ years, data = data, FUN = "sum")
-  write.csv(data, "trabajo/multivariable-analysis/data/corals_spec_totals.csv")
+total_covers_per_year <- function(data) {
+  #' Calculate the total cover per year and per column name
+  results <- data %>% mutate(years = paste("Y", substr(.[[1]], 2,3)))
+  results <- results[, c(-1)] %>% select(years, everything())
+  results <- aggregate(. ~ years, data = results, FUN = "sum")
+  return (results)
+
 }
 
 # Rename matrix so that transect names disappear. We are only interested in
 # having anonymous transects within each year
 
-rename_transect_within_year <- function() {
-  anonymous_transects <- coral_species %>% mutate(years = substr(.[[1]],3,3))
-  anonymous_transects <- anonymous_transects[, c(-1)] %>% select(years, everything())
-  write.csv(anonymous_transects, "trabajo/multivariable-analysis/data/corals_anonymos_transects.csv")
+rename_transect_within_year <- function(data) {
+  #' Rename all transects within each year with the year's last digit
+  by_year_transects <- data %>% mutate(years = substr(.[[1]],3,3))
+  by_year_transects <- by_year_transects[, c(-1)] %>% 
+    select(years, everything())
+  return (by_year_transects)
+  
 }
 
 
-generate_genera_col_names <- function() {
-  col_names <- names(coral_species)
+generate_genera_col_names <- function(data) {
+  #' It generate the same dimension matrix as the given one but the column names
+  #' are those of the genera instead of genera.specie
+  #' @param data original dataframe
+  col_names <- names(data)
   col_names <- lapply(col_names, function(item) {
     dot_pos <- str_locate(item, '\\.')[,1]
     genera_only <- substr(item, 1, (dot_pos-1))
     return(genera_only)
   })
-  data <- coral_species
-  names(data) <- col_names
-  return (data)
+  results <- data
+  names(results) <- col_names
+  return (results)
 }
 
 generate_genera_matrix <- function(data) {
@@ -50,14 +58,4 @@ generate_genera_matrix <- function(data) {
   names(summed_data)[1] <- ""
   return(summed_data)
 }
-
-
-data <- generate_genera_col_names()
-data <- generate_genera_matrix(data)
-write.csv(data, "trabajo/multivariable-analysis/data/genera_only_matrix.csv", 
-          row.names = FALSE)
-
-data <- read.csv("trabajo/multivariable-analysis/data/corals_spec_totals.csv")
-
-
 
