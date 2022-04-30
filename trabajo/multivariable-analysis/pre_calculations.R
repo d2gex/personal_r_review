@@ -45,11 +45,19 @@ generate_genera_matrix <- function(data) {
                         function(col_name) {
                           rowSums(data[names(data) == col_name])
                         })
-  years_df <- data.frame(years = data$years)
-  summed_data <- cbind(summed_data, years=years_df$years)
-  names(summed_data) <- ""
+  years_df <- data.frame(years=data[,1])
+  summed_data <- cbind(summed_data, years_df) %>% select(years, everything())
+  names(summed_data)[1] <- ""
   return(summed_data)
 }
+
+
+data <- generate_genera_col_names()
+data <- generate_genera_matrix(data)
+write.csv(data, "trabajo/multivariable-analysis/data/genera_only_matrix.csv", 
+          row.names = FALSE)
+
+data <- read.csv("trabajo/multivariable-analysis/data/corals_spec_totals.csv")
 
 
 
