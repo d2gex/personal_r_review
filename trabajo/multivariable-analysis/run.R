@@ -33,3 +33,22 @@ write.csv(total_genera,
           "trabajo/multivariable-analysis/data/corals_genera_totals.csv", 
           row.names = FALSE)
 
+# (4) Get only the 1981 results in order to evaluate the community structure
+coral_species_81 <- get_year_only_data(coral_species, '81')
+coral_genera_81 <- get_year_only_data(coral_genera, '81')
+write.csv(coral_species_81, "trabajo/multivariable-analysis/data/coral_species_81.csv")
+write.csv(coral_genera_81, "trabajo/multivariable-analysis/data/coral_genera_81.csv")
+
+# (5) Generate transpose of total cover matrices for both species and genera
+coral_spec_totals_transpose <- 
+  read.csv("trabajo/multivariable-analysis/data/corals_spec_totals.csv")
+coral_spec_totals_transpose <- transpose_matrix(coral_spec_totals_transpose)
+write.csv(coral_spec_totals_transpose,
+          "trabajo/multivariable-analysis/data/transpose/transpose_coral_spec_totals.csv")
+
+coral_genera_totals_transpose <- 
+  read.csv("trabajo/multivariable-analysis/data/corals_genera_totals.csv")
+coral_genera_totals_transpose <- transpose_matrix(coral_genera_totals_transpose)
+write.csv(coral_genera_totals_transpose,
+          "trabajo/multivariable-analysis/data/transpose/transpose_coral_genera_totals.csv")
+

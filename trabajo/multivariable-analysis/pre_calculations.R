@@ -2,6 +2,7 @@ library("readxl")
 library("dplyr")
 library("plyr")
 library("stringr")
+library("data.table")
 
 # Read data
 
@@ -59,3 +60,16 @@ generate_genera_matrix <- function(data) {
   return(summed_data)
 }
 
+get_year_only_data <- function(data,  year_prefix) {
+  names(data)[1] <- 'years'
+  return(
+    data %>% filter(str_detect(years, year_prefix) )
+  )
+}
+
+transpose_matrix <- function (data) {
+  t_data <- transpose(data)
+  colnames(t_data) <- rownames(data)
+  rownames(t_data) <- colnames(data)
+  return(t_data)
+}
