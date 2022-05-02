@@ -52,3 +52,19 @@ coral_genera_totals_transpose <- transpose_matrix(coral_genera_totals_transpose)
 write.csv(coral_genera_totals_transpose,
           "trabajo/multivariable-analysis/data/transpose/transpose_coral_genera_totals.csv")
 
+# (6) Generate transpose of individual cover matrices for both species and genera
+
+coral_spec_transpose <- 
+  read.csv2("trabajo/multivariable-analysis/data/corals_spec.csv")
+coral_spec_transpose <- rename_transect_within_year(coral_spec_transpose)
+coral_spec_transpose <- transpose_matrix(coral_spec_transpose)
+write.csv(coral_spec_transpose,
+          "trabajo/multivariable-analysis/data/transpose/transpose_coral_spec.csv")
+
+coral_genera_transpose <- 
+  read.csv("trabajo/multivariable-analysis/data/corals_genera.csv")
+coral_genera_transpose <- rename_transect_within_year(coral_genera_transpose)
+coral_genera_transpose <- transpose_matrix(coral_genera_transpose)
+write.csv(coral_genera_transpose,
+          "trabajo/multivariable-analysis/data/transpose/transpose_coral_genera.csv")
+
