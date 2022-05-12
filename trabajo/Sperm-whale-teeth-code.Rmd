@@ -355,3 +355,22 @@ ggplot(teeth_data, aes(nontreated_N, treated_N)) +
   geom_smooth(se = FALSE) +
   geom_smooth(method = lm, col = "tomato", se = FALSE)
 ```
+```{r}
+library(gridExtra)
+library(ggpubr)
+
+p1 <- ggscatter(teeth_data, x = "nontreated_C", y = "treated_C",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d13C values (‰)", ylab = "Treated without graphite d13C values (‰)")
+
+p2<- ggscatter(teeth_data, x = "nontreated_C", y = "treated_gr_C",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d13C values (‰)", ylab = "Treated with graphite d13C values (‰)")
+ggarrange(p1, p2, ncol = 2, nrow = 1)
+```
+
+```{r}
+
+```

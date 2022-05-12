@@ -744,3 +744,28 @@ ggplot(teeth_data, aes(nontreated_N, treated_N)) +
 ```
 
 ![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+
+```r
+library(gridExtra)
+library(ggpubr)
+
+p1 <- ggscatter(teeth_data, x = "nontreated_C", y = "treated_C",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d13C values (‰)", ylab = "Treated without graphite d13C values (‰)")
+
+p2<- ggscatter(teeth_data, x = "nontreated_C", y = "treated_gr_C",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d13C values (‰)", ylab = "Treated with graphite d13C values (‰)")
+ggarrange(p1, p2, ncol = 2, nrow = 1)
+```
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+
+
