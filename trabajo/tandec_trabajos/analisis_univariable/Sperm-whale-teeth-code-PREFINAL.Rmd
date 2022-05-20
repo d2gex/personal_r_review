@@ -1,0 +1,425 @@
+---
+title: "Univariate statistics: Effects of different treatments on stable isotope values in sperm whale teeth"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+Sperm whale teeth, cut in half longitudinally, are used for determining their age from the dentine growth layers on the cut surface. In addition, if we take samples from different growth layers, we can analyze stable isotope values in each of them and see how they are changing through the animal's lifetime to determine changes in habitat and diet.
+
+However, after simply cutting the tooth in half, the growth layer visibility is poor because the surface is very smooth. To be able to determine age from the growth lines, scientists usually take one of the half-sections and treat it with formic acid to achieve a more pronounced surface relief. On top, they use a graphite pencil to cover the protruding parts of the surface with graphite, this way improving the growth layer visibility even more.
+
+Usually, scientists used this treated half-section only to determine the age and distinguish growth layers, but  for stable isotope analysis sampling they used the untreated half-section instead (because they thought treatment could affect the stable isotope values). However, when sampling from an untreated half-section with poor growth layer visibility, there are higher chances of error.
+
+So what we want to do is investigate whether the treatments actually affect the stable isotope values in a way that does not allow the use of a treated half-section for sampling.
+
+We want to see if there is a difference between
+
+1. Untreated samples (low visibility) VS Treated samples without graphite (better visibility)
+
+2. Treated samples without graphite (better visibility) VS Treated samples with graphite (best visibility)
+
+And if there are differences, to see if they are consistent and allow us to create a model that would predict one type of values using the other type. This way, even if the treatment does affect the values, maybe we can still use the treated half-section which has better GLG visibility, and later recalculate the original values.
+
+
+What was done in the lab:
+
+1. 30 sperm whale teeth were cut in half longitudinally. One half was not treated, the other half was treated and covered with graphite.
+
+2. Dentine powder was sampled (using a drill) from the same growth layer (5) in both half-sections of the teeth. This way we obtained 30 nutreated samples and 30 treated with graphite samples.
+
+3. Then the graphite layer on the treated half-section was washed off with soap and sampled once again, obtaining 30 treated without graphite samples. 
+
+4. Carbon (d13C) and nitrogen (d15N) values in all of these samples were obtained using a mass spectrometer. 
+
+# Analysis of the results
+
+```{r}
+teeth_data <- read.csv("Samples-Laura-CLEAN-FOR-R.csv")
+names(teeth_data)[1] <- 'treated_gr_N'
+names(teeth_data)[2] <- 'treated_gr_C'
+only_C_data <- teeth_data[,c(4,6,2)]
+only_N_data <- teeth_data[,c(3,5,1)]
+names(only_C_data) <- c("Untreated", "Treated without graphite", "Treated with graphite")
+names(only_N_data) <- c("Untreated", "Treated without graphite", "Treated with graphite")
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(PMCMRplus)
+```
+
+
+## DATA EXPLORATION
+
+
+**Normality plots**
+
+1. Treated with graphite d15N
+```{r}
+qqnorm(teeth_data$treated_gr_N)
+```
+
+2. Untreated d15N
+```{r}
+qqnorm(teeth_data$nontreated_N)
+```
+3. Treated without graphite d15N
+```{r}
+qqnorm(teeth_data$treated_N)
+```
+4. Treated with graphite d13C
+
+```{r}
+qqnorm(teeth_data$treated_gr_C)
+```
+
+5. Untreated d13C
+
+```{r}
+qqnorm(teeth_data$nontreated_C)
+```
+
+6. Treated without graphite d13C
+```{r}
+qqnorm(teeth_data$treated_C)
+```
+
+Many of the graphs do not suggest a completely normal distribution. The data should be tested for normality using a Shapiro normality test.
+
+
+**Normality tests**
+
+```{r}
+normality = sapply(teeth_data, shapiro.test)
+normality
+```
+
+As we can see, most of the variables do not follow a normal distribution, so non-parametric tests will be applied further on. 
+
+
+## Differences between samples
+
+Now we want to know if the samples with different treatments differ significantly from each other.
+
+First of all, let's look at these plots:
+
+```{r}
+library(tidyr)
+
+long_only_C_Data <- only_C_data %>%
+as_tibble() %>%
+mutate(ID = 1:nrow(only_C_data)) %>%
+pivot_longer(cols = -ID, names_to = "treatment", values_to = "isotope_values") %>%
+mutate(blocks = factor(ID))
+
+long_only_N_Data <- only_N_data %>%
+as_tibble() %>%
+mutate(ID = 1:nrow(only_N_data)) %>%
+pivot_longer(cols = -ID, names_to = "treatment", values_to = "isotope_values") %>%
+mutate(blocks = factor(ID))
+
+```
+
+```{r}
+ggplot(long_only_C_Data,
+aes(treatment, isotope_values, group = ID, col = blocks)) +
+geom_line() +
+xlab("Treatment") +
+ylab("d13C values (‰)") +
+labs(color='Individuals')
+```
+
+```{r}
+ggplot(long_only_N_Data,
+aes(treatment, isotope_values, group = ID, col = blocks)) +
+geom_line() +
+xlab("Treatment") +
+ylab("d15N values (‰)") +
+labs(color='Individuals')
+```
+
+Visually it looks like both types of treated samples tend to have larger values, both d13C and d15C, than their untreated counterparts. Let's test if there really are significant differences between the treatments using a non-parametric Friedman's test.
+
+```{r}
+friedman.test(data.matrix(only_C_data))
+```
+
+```{r}
+friedman.test(data.matrix(only_N_data))
+```
+Significant differences in both d13C and d15C values were found between treatment types. The treatment does alter values significantly, although we are not sure which treatment(-s). A post-hoc pairwise test is needed.
+
+???????????
+
+```{r}
+library(PMCMRplus)
+frdAllPairsNemenyiTest(data.matrix(only_N_data))
+
+```
+
+**Test for equality of variances**
+
+Let's see if our data has equal variances:
+
+```{r}
+leveneTest(isotope_values ~ treatment, 
+                    data = long_only_C_Data)
+```
+```{r}
+leveneTest(isotope_values ~ treatment, 
+                    data = long_only_N_Data)
+```
+The variances are equal for data from both elements.
+
+
+
+## Relationships between variables
+
+To see what kind of model we could try to derive from this data, we want to see what relationship there is between the values obtained from different treatment types vs untreated samples.
+
+
+```{r}
+library(car)
+
+scatterplot(treated_C ~ nontreated_C, data=teeth_data,
+            xlab="Untreated d13C values", ylab="Treated without graphite d13C values",
+   main="Scatterplot for d13C values (1)")
+```
+```{r}
+scatterplot(treated_gr_C ~ nontreated_C, data=teeth_data,
+            xlab="Untreated d13C values", ylab="Treated with graphite d13C values",
+   main="Scatterplot for d13C values (2)")
+```
+
+
+```{r}
+scatterplot(treated_N ~ nontreated_N, data=teeth_data,
+            xlab="Untreated d15N values", ylab="Treated without graphite d15N values",
+   main="Scatterplot for d15N values (1)")
+```
+```{r}
+scatterplot(treated_gr_N ~ nontreated_N, data=teeth_data,
+            xlab="Untreated d15N values", ylab="Treated with graphite d15N values",
+   main="Scatterplot for d15N values (2)")
+```
+
+**Correlations**
+
+
+1. d13C correlations
+```{r}
+p1 <- ggscatter(teeth_data, x = "nontreated_C", y = "treated_C",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d13C values (‰)", ylab = "Treated without graphite d13C values (‰)")
+
+p2<- ggscatter(teeth_data, x = "nontreated_C", y = "treated_gr_C",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d13C values (‰)", ylab = "Treated with graphite d13C values (‰)")
+ggarrange(p1, p2, ncol = 2, nrow = 1)
+```
+
+2. d15N correlations
+
+```{r}
+n1 <- ggscatter(teeth_data, x = "nontreated_N", y = "treated_N",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d15N values (‰)", ylab = "Treated without graphite d15N values (‰)")
+
+n2<- ggscatter(teeth_data, x = "nontreated_N", y = "treated_gr_N",
+add = "reg.line", conf.int = TRUE,
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "Untreated d15N values (‰)", ylab = "Treated with graphite d15N values (‰)")
+ggarrange(n1, n2, ncol = 2, nrow = 1)
+```
+
+
+We can see there is a linear relationship between the variables, as well as strong correlations. We can try applying a linear regression model to this data.
+
+
+
+## Linear regression models
+
+1. d13C linear regression model, treated without graphite vs untreated
+
+```{r}
+mC <- lm (treated_C ~ nontreated_C, teeth_data)
+summary(mC)
+```
+```{r}
+plot(mC)
+```
+
+
+2. d13C linear regression model, treated with graphite vs untreated
+```{r}
+mgC <- lm (treated_gr_C ~ nontreated_C, teeth_data)
+summary(mgC)
+```
+
+```{r}
+plot(mgC)
+```
+
+```{r}
+library(ggpubr)
+```
+
+**d13C linear regression model graphs**
+
+```{r}
+Cmgraph <- ggplot(teeth_data, aes(nontreated_C, treated_C)) +
+  geom_point(shape = 21, size = 3) + 
+  geom_smooth(se = FALSE) +
+  geom_smooth(method = lm, col = "tomato", se = FALSE) +
+  xlab("Untreated δ13C values (‰)") + ylab("Treated without graphite δ13C values (‰)") +
+  stat_regline_equation() 
+
+Cgmgraph <- ggplot(teeth_data, aes(nontreated_C, treated_gr_C)) +
+  geom_point(shape = 21, size = 3) + 
+  geom_smooth(se = FALSE) +
+  geom_smooth(method = lm, col = "tomato", se = FALSE) +
+  xlab("Untreated δ13C values (‰)") + ylab("Treated with graphite δ13C values (‰)") +
+  stat_regline_equation()
+
+ggarrange(Cmgraph, Cgmgraph, ncol = 2, nrow = 1)
+```
+
+We obtained models with significant slope coefficients and high R-squared values. However, it is important to evaluate if the residuals are normally distributed and fulfil the homoescedasticity assumption.
+
+```{r}
+r1 <- plot(resid_values_mc, main="Squareness of treated without graphite d13C linear model residuals")
+r2 <- plot(resid_values_mgc, main ="Squareness of treated with graphite d13C linear model residuals")
+ggarrange(r1, r2, ncol = 2, nrow = 1)
+```
+```{r}
+plot(resid_values_mgc, main ="Squareness of treated with graphite d13C lm graphite residuals")
+```
+
+```{r}
+resid_values_mc <- residuals(mC)
+resid_values_mgc <- residuals(mgC)
+par(mfrow = c(2, 2))
+hist(resid_values_mc, main="")
+boxplot(resid_values_mc)
+mtext("Histogram and boxplot for treated without graphite d13C residuals", side = 3, line = -1, outer = TRUE)
+mtext("Histogram and boxplot for treated with graphite graphite d13C residuals", side = 3, line = -15, outer = TRUE)
+hist(resid_values_mgc, main="")
+boxplot(resid_values_mgc)
+```
+```{r}
+shapiro.test(resid_values_mc)
+```
+```{r}
+shapiro.test(resid_values_mgc)
+```
+The residuals of both d13C models follow a normal distribution.
+
+```{r}
+bptest(mC)
+```
+
+```{r}
+bptest(mgC)
+```
+
+The residuals of both d13C models also fulfil the homoescedasticity assumption.
+
+
+
+
+
+3. d15N linear regression model, treated without graphite vs untreated
+
+```{r}
+mN <- lm (treated_N ~ nontreated_N, teeth_data)
+summary(mN)
+```
+```{r}
+plot(mN)
+```
+
+
+4. d15N linear regression model, treated with graphite vs untreated
+```{r}
+mgN <- lm (treated_gr_N ~ nontreated_N, teeth_data)
+summary(mgN)
+```
+
+```{r}
+plot(mgN)
+```
+
+
+Again, we obtained two linear regression models with significant slope coefficients and high R-squared values. Now we have to evaluate if the residuals of these models meet the normality and homoescedasticity assumptions.
+
+```{r}
+resid_values_mn <- residuals(mN)
+resid_values_mgn <- residuals(mgN)
+par(mfrow = c(2, 2))
+hist(resid_values_mn, main="")
+boxplot(resid_values_mn)
+mtext("Histogram and boxplot for treated without graphite d15N residuals", side = 3, line = -1, outer = TRUE)
+mtext("Histogram and boxplot for treated with graphite d15N residuals", side = 3, line = -15, outer = TRUE)
+hist(resid_values_mgn, main="")
+boxplot(resid_values_mgn)
+```
+
+```{r}
+shapiro.test(resid_values_mn)
+```
+
+```{r}
+shapiro.test(resid_values_mgn)
+```
+The residuals of both d15N models follow a normal distribution.
+
+```{r}
+bptest(mN)
+```
+
+```{r}
+bptest(mgN)
+```
+The residuals of both d15N models also fulfil the homoescedasticity assumption.
+
+
+## Predicting values using our models
+
+```{r}
+library(ggeffects)
+```
+
+
+Predicting values using these regression models:
+
+1. For treated without graphite d13C values
+```{r}
+ggpredict(mC)
+```
+2. For treated with graphite d13C values
+```{r}
+ggpredict(mgC)
+```
+3. For treated without graphite d15N values
+```{r}
+ggpredict(mN)
+```
+
+4. For treated with graphite d15N values
+```{r}
+ggpredict(mgN)
+```
+
+
+
+
+
+
+
+
+
