@@ -1,8 +1,11 @@
 ---
-title: "Univariate statistics: Effects of different treatments on stable isotope values in sperm whale teeth"
+title: 'Univariate statistics: Effects of different treatments on stable isotope values
+  in sperm whale teeth'
 output:
-  html_notebook: default
+  html_document:
+    df_print: paged
   pdf_document: default
+  html_notebook: default
 ---
 
 Sperm whale teeth, cut in half longitudinally, are used for determining their age from the dentine growth layers on the cut surface. In addition, if we take samples from different growth layers, we can analyze stable isotope values in each of them and see how they are changing through the animal's lifetime to determine changes in habitat and diet.
@@ -155,7 +158,8 @@ Significant differences in both d13C and d15C values were found between treatmen
 
 ```{r}
 library(PMCMRplus)
-frdAllPairsNemenyiTest(data.matrix(only_N_data))
+
+frdAllPairsNemenyiTest(data.matrix(only_N_data, rownames.force = TRUE))
 
 ```
 
