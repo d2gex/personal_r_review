@@ -170,12 +170,29 @@ only_N_data <- teeth_data[,c(3,5,1)]
 ```
 
 ```{r}
-boxplot(only_C_data, main="Carbon isotope values for the different treatments")
+names(only_C_data) <- c("Non-Treated", "Treated without graphite", "Treated with graphite")
+
+long_only_C_Data <- only_C_data %>% 
+  as_tibble() %>% 
+  mutate(ID = 1:nrow(only_C_data)) %>% 
+  pivot_longer(cols = -ID, names_to = "treatment", values_to = "isotope_values") %>%
+  mutate(blocks = factor(ID))
+
+
+ggplot(long_only_C_Data,
+       aes(treatment, isotope_values, group = ID, col = blocks)) +
+  ggtitle("Carbon Isotope Values for each individual teeth") + 
+  geom_line() +
+  xlab("Treatment") +
+  ylab("Istope Values") +
+  labs(color='Individual Block Treatments')
+
 ```
 
 We will use Wilconxon Signed-Rand (non-parametric) to test two non-independent samples that do not follow a normal distribution as it seems the case as shown earlier on. The null hyptothesis is that the average differences is zero so both samples are pretty similar. Therefore let's first compare non-treated sample C values with treated sample C values (without graphite) 
 
 ```{r}
+friedman.test(data.matrix(only_C_data))
 wilcox.test(teeth_data$nontreated_C, teeth_data$treated_C, paired=TRUE)
 ```
 The p-values is << 0.05 for this one, so **the acid treatment does alter C values significantly.**
@@ -195,11 +212,24 @@ The p-value > 0,05, this means that **graphite seems to not alter the C values s
 
 1. Does the acid treatment have a visible effect on N isotope values? 
 ```{r}
-boxplot(only_N_data, main="Nitrogen isotope values for the different treatments")
+library(tidyverse)
+names(only_N_data) <- c("Non-Treated", "Treated without graphite", "Treated with graphite")
+only_N_data %>% pivot_longer(c(1:3))%>% 
+  ggplot(aes(x=name,y=value, fill=name)) +
+  geom_boxplot() +
+  ggtitle("Carbon isotope values for the different treatments") +
+  scale_x_discrete(labels=c("Non-Treated"="1", 
+                          "Treated without graphite"="2", 
+                          "Treated with graphite"="3")) +
+  scale_fill_discrete(name="Treatment Type") +
+  xlab("") +
+  ylab("Percentage")  
+
 ```
 Similarly as for Carbon we run Wilcox test:
 
 ```{r}
+
 wilcox.test(teeth_data$nontreated_N, teeth_data$treated_N, paired=TRUE)
 ```
 The p < 0,05 for this one too, so **the acid treatment does alter N values significantly** as well. 

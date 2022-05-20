@@ -288,7 +288,40 @@ only_N_data <- teeth_data[,c(3,5,1)]
 
 
 ```r
-boxplot(only_C_data, main="Carbon isotope values for the different treatments")
+library(tidyverse)
+```
+
+```
+## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
+```
+
+```
+## ✓ tibble  3.1.6     ✓ purrr   0.3.4
+## ✓ tidyr   1.2.0     ✓ stringr 1.4.0
+## ✓ readr   2.1.2     ✓ forcats 0.5.1
+```
+
+```
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x gridExtra::combine() masks dplyr::combine()
+## x dplyr::filter()      masks stats::filter()
+## x dplyr::lag()         masks stats::lag()
+## x car::recode()        masks dplyr::recode()
+## x purrr::some()        masks car::some()
+```
+
+```r
+names(only_C_data) <- c("Non-Treated", "Treated without graphite", "Treated with graphite")
+only_C_data %>% pivot_longer(c(1:3))%>% 
+  ggplot(aes(x=name,y=value, fill=name)) +
+  geom_boxplot() +
+  ggtitle("Carbon isotope values for the different treatments") +
+  scale_x_discrete(labels=c("Non-Treated"="1", 
+                          "Treated without graphite"="2", 
+                          "Treated with graphite"="3")) +
+  scale_fill_discrete(name="Treatment Type") +
+  xlab("") +
+  ylab("Percentage")  
 ```
 
 ![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
@@ -336,7 +369,18 @@ The p-value > 0,05, this means that **graphite seems to not alter the C values s
 1. Does the acid treatment have a visible effect on N isotope values? 
 
 ```r
-boxplot(only_N_data, main="Nitrogen isotope values for the different treatments")
+library(tidyverse)
+names(only_N_data) <- c("Non-Treated", "Treated without graphite", "Treated with graphite")
+only_N_data %>% pivot_longer(c(1:3))%>% 
+  ggplot(aes(x=name,y=value, fill=name)) +
+  geom_boxplot() +
+  ggtitle("Carbon isotope values for the different treatments") +
+  scale_x_discrete(labels=c("Non-Treated"="1", 
+                          "Treated without graphite"="2", 
+                          "Treated with graphite"="3")) +
+  scale_fill_discrete(name="Treatment Type") +
+  xlab("") +
+  ylab("Percentage")  
 ```
 
 ![](Sperm-whale-teeth-code_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
