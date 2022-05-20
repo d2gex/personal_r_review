@@ -1,11 +1,8 @@
 ---
-title: 'Univariate statistics: Effects of different treatments on stable isotope values
-  in sperm whale teeth'
+title: "Univariate statistics: Effects of different treatments on stable isotope values in sperm whale teeth"
 output:
-  html_document:
-    df_print: paged
-  pdf_document: default
   html_notebook: default
+  pdf_document: default
 ---
 
 Sperm whale teeth, cut in half longitudinally, are used for determining their age from the dentine growth layers on the cut surface. In addition, if we take samples from different growth layers, we can analyze stable isotope values in each of them and see how they are changing through the animal's lifetime to determine changes in habitat and diet.
@@ -35,7 +32,8 @@ What was done in the lab:
 
 4. Carbon (d13C) and nitrogen (d15N) values in all of these samples were obtained using a mass spectrometer. 
 
-# Analysis of the results
+
+Let's start the data analysis of the d13C and d15N values obtained.
 
 ```{r}
 teeth_data <- read.csv("Samples-Laura-CLEAN-FOR-R.csv")
@@ -51,10 +49,14 @@ names(only_N_data) <- c("Untreated", "Treated without graphite", "Treated with g
 library(dplyr)
 library(ggplot2)
 library(PMCMRplus)
+library(ggeffects)
+library(ggpubr)
+library(car)
+library(lmtest)
 ```
 
 
-## DATA EXPLORATION
+## Data exploration
 
 
 **Normality plots**
@@ -152,16 +154,23 @@ friedman.test(data.matrix(only_C_data))
 ```{r}
 friedman.test(data.matrix(only_N_data))
 ```
-Significant differences in both d13C and d15C values were found between treatment types. The treatment does alter values significantly, although we are not sure which treatment(-s). A post-hoc pairwise test is needed.
+Significant differences in both d13C and d15C values were found between treatment types. The treatment does alter values significantly, although we are not sure which treatment(-s). A post-hoc pairwise test (for example, Nemenyi test) is needed.
 
-???????????
+
+For d13C values:
+```{r}
+library(PMCMRplus)
+frdAllPairsNemenyiTest(data.matrix(only_C_data, rownames.force = TRUE))
+
+```
+For d15N values:
 
 ```{r}
 library(PMCMRplus)
-
 frdAllPairsNemenyiTest(data.matrix(only_N_data, rownames.force = TRUE))
 
 ```
+
 
 **Test for equality of variances**
 
@@ -296,15 +305,6 @@ ggarrange(Cmgraph, Cgmgraph, ncol = 2, nrow = 1)
 We obtained models with significant slope coefficients and high R-squared values. However, it is important to evaluate if the residuals are normally distributed and fulfil the homoescedasticity assumption.
 
 ```{r}
-r1 <- plot(resid_values_mc, main="Squareness of treated without graphite d13C linear model residuals")
-r2 <- plot(resid_values_mgc, main ="Squareness of treated with graphite d13C linear model residuals")
-ggarrange(r1, r2, ncol = 2, nrow = 1)
-```
-```{r}
-plot(resid_values_mgc, main ="Squareness of treated with graphite d13C lm graphite residuals")
-```
-
-```{r}
 resid_values_mc <- residuals(mC)
 resid_values_mgc <- residuals(mgC)
 par(mfrow = c(2, 2))
@@ -322,6 +322,12 @@ shapiro.test(resid_values_mc)
 shapiro.test(resid_values_mgc)
 ```
 The residuals of both d13C models follow a normal distribution.
+
+```{r}
+r1 <- plot(resid_values_mc, main="Squareness of treated without graphite d13C linear model residuals")
+r2 <- plot(resid_values_mgc, main ="Squareness of treated with graphite d13C linear model residuals")
+ggarrange(r1, r2, ncol = 2, nrow = 1)
+```
 
 ```{r}
 bptest(mC)
@@ -354,10 +360,6 @@ mgN <- lm (treated_gr_N ~ nontreated_N, teeth_data)
 summary(mgN)
 ```
 
-```{r}
-plot(mgN)
-```
-
 
 Again, we obtained two linear regression models with significant slope coefficients and high R-squared values. Now we have to evaluate if the residuals of these models meet the normality and homoescedasticity assumptions.
 
@@ -383,6 +385,12 @@ shapiro.test(resid_values_mgn)
 The residuals of both d15N models follow a normal distribution.
 
 ```{r}
+r1 <- plot(resid_values_mn, main="Squareness of treated without graphite d15N linear model residuals")
+r2 <- plot(resid_values_mgn, main ="Squareness of treated with graphite d15N linear model residuals")
+ggarrange(r1, r2, ncol = 2, nrow = 1)
+```
+
+```{r}
 bptest(mN)
 ```
 
@@ -394,12 +402,6 @@ The residuals of both d15N models also fulfil the homoescedasticity assumption.
 
 ## Predicting values using our models
 
-```{r}
-library(ggeffects)
-```
-
-
-Predicting values using these regression models:
 
 1. For treated without graphite d13C values
 ```{r}
